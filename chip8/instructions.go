@@ -21,7 +21,11 @@ func (i clearScreen) String() string {
 }
 
 func (i clearScreen) Execute(c *Chip8) {
-	c.screen.Clear()
+	for y := range c.screen {
+		for x := range c.screen[y] {
+			c.screen[y][x] = false
+		}
+	}
 }
 
 // Jump 1NNN: Jump to address NNN

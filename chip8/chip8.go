@@ -18,7 +18,6 @@ const (
 	instructionBytes = 2
 	registerCount    = 16
 	stackLevels      = 16
-	inputKeys        = 16
 	screenWidth      = 64
 	screenHeight     = 32
 	bytePixels       = 8
@@ -36,14 +35,12 @@ func hexdump16(b uint16) string {
 	return fmt.Sprintf("%04x", b)
 }
 
-type Memory [memoryLocations]byte
-
-func (m Memory) Hexdump() string {
+func hexdump(data []byte) string {
 	const bytesPerRow = 16
 	var sb strings.Builder
-	sb.Grow(len(m))
+	sb.Grow(len(data))
 
-	for i, b := range m {
+	for i, b := range data {
 		if i%bytesPerRow == 0 {
 			if i > 0 {
 				sb.WriteString("\n")
@@ -58,22 +55,16 @@ func (m Memory) Hexdump() string {
 	return sb.String()
 }
 
+type Memory [memoryLocations]byte
 type Registers [registerCount]byte
-
+type Stack [stackLevels]uint16
 type Screen [screenHeight][screenWidth]bool
-
-func (s *Screen) Clear() {
-	for i := range s {
-		for j := range s[i] {
-			s[i][j] = false
-		}
-	}
-}
 
 type Chip8 struct {
 	log            *slog.Logger
 	memory         Memory
 	registers      Registers
+	stack          Stack
 	screen         Screen
 	programCounter uint16
 	index          uint16
@@ -84,6 +75,7 @@ func NewChip8(log *slog.Logger) *Chip8 {
 		log:            log,
 		memory:         Memory{},
 		registers:      Registers{},
+		stack:          Stack{},
 		screen:         Screen{},
 		programCounter: programStart,
 		index:          0,
@@ -112,7 +104,7 @@ func (c *Chip8) LoadROM(r io.Reader) error {
 	// TODO: ensure data copied in bounds -> check data len
 	copy(c.memory[programStart:], data)
 	c.log.Info("ROM loaded", slog.Int("bytes", len(data)))
-	//println(c.memory.Hexdump())
+	//println(hexdump(c.memory[:]))
 	return nil
 }
 
