@@ -2,6 +2,9 @@
 
 My first emudev project
 
+## Usage
+Instructions are documented in output of `go run main.go -h`
+
 ## Useful links
 * https://en.wikipedia.org/wiki/CHIP-8
 * https://chip-8.github.io/links/

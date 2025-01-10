@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -119,7 +118,6 @@ func (c *Chip8) Update() error {
 
 	instruction, ok := c.decode(opcode)
 	if !ok {
-		time.Sleep(2 * time.Second) // time to check screen output, remove
 		return fmt.Errorf("invalid opcode: %s", hexdump16(opcode))
 	}
 	c.log.Info("decode: " + instruction.String())

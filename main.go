@@ -21,14 +21,12 @@ var (
 )
 
 func main() {
-	log := slog.Default()
-	log.Info("CHIP-8 starting...")
-
 	flag.IntVar(&tps, "tps", defaultTPS, "ticks per second (clock Hz)")
 	flag.StringVar(&rom, "rom", defaultRom, "rom path")
 	flag.Parse()
 
-	log.Info("CHIP-8 ready", slog.Int("tps", tps))
+	log := slog.Default()
+	log.Info("CHIP-8 starting...", slog.Int("tps", tps))
 
 	ebiten.SetWindowSize(screenWidth, screenWidth/2)
 	ebiten.SetWindowTitle("CHIP-8")
