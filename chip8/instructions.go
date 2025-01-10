@@ -192,6 +192,86 @@ func (i add) Execute(c *Chip8) {
 	c.registers[i.x] += i.n
 }
 
+// Move 8XY0: Store the value of register VY in register VX
+func Move(opcode uint16) Instruction {
+	return &move{
+		x: uint8(opcode>>8) & 0xF,
+		y: uint8(opcode>>4) & 0xF,
+	}
+}
+
+type move struct {
+	x, y uint8
+}
+
+func (i move) String() string {
+	return fmt.Sprintf("MOVE V%x,V%x", i.x, i.y)
+}
+
+func (i move) Execute(c *Chip8) {
+	c.registers[i.x] = c.registers[i.y]
+}
+
+// Or 8XY1: Set VX to VX OR VY
+func Or(opcode uint16) Instruction {
+	return &or{
+		x: uint8(opcode>>8) & 0xF,
+		y: uint8(opcode>>4) & 0xF,
+	}
+}
+
+type or struct {
+	x, y uint8
+}
+
+func (i or) String() string {
+	return fmt.Sprintf("OR V%x,V%x", i.x, i.y)
+}
+
+func (i or) Execute(c *Chip8) {
+	c.registers[i.x] |= c.registers[i.y]
+}
+
+// And 8XY2: Set VX to VX AND VY
+func And(opcode uint16) Instruction {
+	return &and{
+		x: uint8(opcode>>8) & 0xF,
+		y: uint8(opcode>>4) & 0xF,
+	}
+}
+
+type and struct {
+	x, y uint8
+}
+
+func (i and) String() string {
+	return fmt.Sprintf("AND V%x,V%x", i.x, i.y)
+}
+
+func (i and) Execute(c *Chip8) {
+	c.registers[i.x] &= c.registers[i.y]
+}
+
+// Xor 8XY3: Set VX to VX XOR VY
+func Xor(opcode uint16) Instruction {
+	return &xor{
+		x: uint8(opcode>>8) & 0xF,
+		y: uint8(opcode>>4) & 0xF,
+	}
+}
+
+type xor struct {
+	x, y uint8
+}
+
+func (i xor) String() string {
+	return fmt.Sprintf("XOR V%x,V%x", i.x, i.y)
+}
+
+func (i xor) Execute(c *Chip8) {
+	c.registers[i.x] ^= c.registers[i.y]
+}
+
 // SkipNotEqualRegister 9XY0: Skip the following instruction if the value of register VX is not equal to the value of register VY
 func SkipNotEqualRegister(opcode uint16) Instruction {
 	return &skipNotEqualRegister{

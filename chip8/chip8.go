@@ -173,6 +173,19 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 		return Load(opcode), true
 	case 0x7000:
 		return Add(opcode), true
+	case 0x8000:
+		switch opcode & 0xF {
+		case 0x0:
+			return Move(opcode), true
+		case 0x1:
+			return Or(opcode), true
+		case 0x2:
+			return And(opcode), true
+		case 0x3:
+			return Xor(opcode), true
+		default:
+			return nil, false
+		}
 	case 0x9000:
 		return SkipNotEqualRegister(opcode), true
 	case 0xA000:
