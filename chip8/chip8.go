@@ -35,12 +35,13 @@ func hexdump16(b uint16) string {
 	return fmt.Sprintf("%04x", b)
 }
 
-func hexdump(data []byte) string {
+type Memory [memoryLocations]byte
+
+func (m Memory) String() string {
 	const bytesPerRow = 16
 	var sb strings.Builder
-	sb.Grow(len(data))
 
-	for i, b := range data {
+	for i, b := range m {
 		if i%bytesPerRow == 0 {
 			if i > 0 {
 				sb.WriteString("\n")
@@ -55,9 +56,30 @@ func hexdump(data []byte) string {
 	return sb.String()
 }
 
-type Memory [memoryLocations]byte
 type Registers [registerCount]byte
+
+func (r Registers) String() string {
+	var sb strings.Builder
+
+	for i, b := range r {
+		sb.WriteString(fmt.Sprintf("%x:%s ", i, hexdump8(b)))
+	}
+
+	return strings.TrimSpace(sb.String())
+}
+
 type Stack [stackLevels]uint16
+
+func (s Stack) String() string {
+	var sb strings.Builder
+
+	for i, b := range s {
+		sb.WriteString(fmt.Sprintf("%x:%s ", i, hexdump16(b)))
+	}
+
+	return strings.TrimSpace(sb.String())
+}
+
 type Screen [screenHeight][screenWidth]bool
 
 type Chip8 struct {
@@ -106,7 +128,7 @@ func (c *Chip8) LoadROM(r io.Reader) error {
 	// TODO: ensure data copied in bounds -> check data len
 	copy(c.memory[programStart:], data)
 	c.log.Info("ROM loaded", slog.Int("bytes", len(data)))
-	//println(hexdump(c.memory[:]))
+	//println(c.memory.String())
 	return nil
 }
 
