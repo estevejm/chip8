@@ -28,6 +28,23 @@ func (i clearScreen) Execute(c *Chip8) {
 	}
 }
 
+// Return 00EE: Return from a subroutine
+func Return() Instruction {
+	return &returnFromSubroutine{}
+}
+
+type returnFromSubroutine struct{}
+
+func (i returnFromSubroutine) String() string {
+	return "RTS"
+}
+
+func (i returnFromSubroutine) Execute(c *Chip8) {
+	// TODO: check stack pointer won't be < 0
+	c.stackPointer--
+	c.programCounter = c.stack[c.stackPointer]
+}
+
 // Jump 1NNN: Jump to address NNN
 func Jump(opcode uint16) Instruction {
 	return &jump{
@@ -44,6 +61,28 @@ func (i jump) String() string {
 }
 
 func (i jump) Execute(c *Chip8) {
+	c.programCounter = i.n
+}
+
+// Call 2NNN: Execute subroutine starting at address NNN
+func Call(opcode uint16) Instruction {
+	return &call{
+		n: opcode & 0xFFF,
+	}
+}
+
+type call struct {
+	n uint16
+}
+
+func (i call) String() string {
+	return fmt.Sprintf("CALL 0x%04x", i.n)
+}
+
+func (i call) Execute(c *Chip8) {
+	// TODO: check stack overflow
+	c.stack[c.stackPointer] = c.programCounter
+	c.stackPointer++
 	c.programCounter = i.n
 }
 

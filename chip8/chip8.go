@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -65,9 +66,10 @@ type Chip8 struct {
 	memory         Memory
 	registers      Registers
 	stack          Stack
-	screen         Screen
+	stackPointer   uint8
 	programCounter uint16
 	index          uint16
+	screen         Screen
 }
 
 func NewChip8(log *slog.Logger) *Chip8 {
@@ -76,9 +78,10 @@ func NewChip8(log *slog.Logger) *Chip8 {
 		memory:         Memory{},
 		registers:      Registers{},
 		stack:          Stack{},
-		screen:         Screen{},
+		stackPointer:   0,
 		programCounter: programStart,
 		index:          0,
+		screen:         Screen{},
 	}
 }
 
@@ -116,6 +119,7 @@ func (c *Chip8) Update() error {
 
 	instruction, ok := c.decode(opcode)
 	if !ok {
+		time.Sleep(2 * time.Second) // time to check screen output, remove
 		return fmt.Errorf("invalid opcode: %s", hexdump16(opcode))
 	}
 	c.log.Info("decode: " + instruction.String())
@@ -126,26 +130,39 @@ func (c *Chip8) Update() error {
 		slog.String("PC", hexdump16(c.programCounter)),
 		slog.String("I", hexdump16(c.index)),
 		slog.Any("V", c.registers),
+		slog.Int("SP", int(c.stackPointer)),
+		slog.Any("S", c.stack),
 	)
 
 	return nil
 }
 
 func (c *Chip8) fetch() uint16 {
+	// big-endian
 	return uint16(c.memory[c.programCounter])<<8 | uint16(c.memory[c.programCounter+1])
 }
 
 func (c *Chip8) incrementProgramCounter() {
 	// TODO: handle PC > 4096 / 0x1000 (12 bits). 2 options: PC overflow (error) or wrap (modulo)
+	// TODO: also check PC < 521 / 0x200 (program start)
 	c.programCounter += instructionBytes
 }
 
 func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 	switch opcode & 0xF000 {
 	case 0x0000:
-		return ClearScreen(), true
+		switch opcode & 0xFF {
+		case 0xE0:
+			return ClearScreen(), true
+		case 0xEE:
+			return Return(), true
+		default:
+			return nil, false
+		}
 	case 0x1000:
 		return Jump(opcode), true
+	case 0x2000:
+		return Call(opcode), true
 	case 0x3000:
 		return SkipEqual(opcode), true
 	case 0x4000:
