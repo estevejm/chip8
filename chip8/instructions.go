@@ -144,7 +144,7 @@ type skipEqualRegister struct {
 }
 
 func (i skipEqualRegister) String() string {
-	return fmt.Sprintf("SKRE V%x,V%x", i.x, i.y)
+	return fmt.Sprintf("SKE V%x,V%x", i.x, i.y)
 }
 
 func (i skipEqualRegister) Execute(c *Chip8) {
@@ -414,7 +414,7 @@ type skipNotEqualRegister struct {
 }
 
 func (i skipNotEqualRegister) String() string {
-	return fmt.Sprintf("SKRNE V%x,V%x", i.x, i.y)
+	return fmt.Sprintf("SKNE V%x,V%x", i.x, i.y)
 }
 
 func (i skipNotEqualRegister) Execute(c *Chip8) {
