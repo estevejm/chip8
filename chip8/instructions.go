@@ -327,6 +327,29 @@ func (i subRegister) Execute(c *Chip8) {
 	c.registers[i.x] -= c.registers[i.y]
 }
 
+// ShiftRight 8XY6: Store the value of register VY shifted right one bit in register VX
+// Set register VF to the least significant bit prior to the shift
+// VY is unchanged
+func ShiftRight(opcode uint16) Instruction {
+	return &shiftRight{
+		x: uint8(opcode>>8) & 0xF,
+		y: uint8(opcode>>4) & 0xF,
+	}
+}
+
+type shiftRight struct {
+	x, y uint8
+}
+
+func (i shiftRight) String() string {
+	return fmt.Sprintf("SHR V%x,V%x", i.x, i.y)
+}
+
+func (i shiftRight) Execute(c *Chip8) {
+	c.registers[flagRegister] = c.registers[i.y] & 1
+	c.registers[i.x] = c.registers[i.y] >> 1
+}
+
 // ReverseSubRegister 8XY7: Set register VX to the value of VY minus VX
 // Set VF to 00 if a borrow occurs
 // Set VF to 01 if a borrow does not occur
@@ -352,6 +375,29 @@ func (i reverseSubRegister) Execute(c *Chip8) {
 		c.registers[flagRegister] = 0
 	}
 	c.registers[i.x] = c.registers[i.y] - c.registers[i.x]
+}
+
+// ShiftLeft 8XYE: Store the value of register VY shifted left one bit in register VX
+// Set register VF to the most significant bit prior to the shift
+// VY is unchanged
+func ShiftLeft(opcode uint16) Instruction {
+	return &shiftLeft{
+		x: uint8(opcode>>8) & 0xF,
+		y: uint8(opcode>>4) & 0xF,
+	}
+}
+
+type shiftLeft struct {
+	x, y uint8
+}
+
+func (i shiftLeft) String() string {
+	return fmt.Sprintf("SHL V%x,V%x", i.x, i.y)
+}
+
+func (i shiftLeft) Execute(c *Chip8) {
+	c.registers[flagRegister] = c.registers[i.y] & 0x80
+	c.registers[i.x] = c.registers[i.y] << 1
 }
 
 // SkipNotEqualRegister 9XY0: Skip the following instruction

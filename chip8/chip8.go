@@ -208,8 +208,12 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 			return AddRegister(opcode), true
 		case 0x5:
 			return SubRegister(opcode), true
+		case 0x6:
+			return ShiftRight(opcode), true
 		case 0x7:
 			return ReverseSubRegister(opcode), true
+		case 0xE:
+			return ShiftLeft(opcode), true
 		default:
 			return nil, false
 		}
