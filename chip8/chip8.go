@@ -17,6 +17,7 @@ const (
 	programStart     = 0x200
 	instructionBytes = 2
 	registerCount    = 16
+	flagRegister     = 0xF
 	stackLevels      = 16
 	screenWidth      = 64
 	screenHeight     = 32
@@ -203,6 +204,12 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 			return And(opcode), true
 		case 0x3:
 			return Xor(opcode), true
+		case 0x4:
+			return AddRegister(opcode), true
+		case 0x5:
+			return SubRegister(opcode), true
+		case 0x7:
+			return ReverseSubRegister(opcode), true
 		default:
 			return nil, false
 		}

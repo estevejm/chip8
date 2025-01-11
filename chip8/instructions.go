@@ -130,7 +130,8 @@ func (i skipNotEqual) Execute(c *Chip8) {
 	}
 }
 
-// SkipEqualRegister 5XY0: Skip the following instruction if the value of register VX is equal to the value of register VY
+// SkipEqualRegister 5XY0: Skip the following instruction
+// if the value of register VX is equal to the value of register VY
 func SkipEqualRegister(opcode uint16) Instruction {
 	return &skipEqualRegister{
 		x: uint8(opcode>>8) & 0xF,
@@ -272,7 +273,89 @@ func (i xor) Execute(c *Chip8) {
 	c.registers[i.x] ^= c.registers[i.y]
 }
 
-// SkipNotEqualRegister 9XY0: Skip the following instruction if the value of register VX is not equal to the value of register VY
+// AddRegister 8XY4: Add the value of register VY to register VX
+// Set VF to 01 if a carry occurs
+// Set VF to 00 if a carry does not occur
+func AddRegister(opcode uint16) Instruction {
+	return &addRegister{
+		x: uint8(opcode>>8) & 0xF,
+		y: uint8(opcode>>4) & 0xF,
+	}
+}
+
+type addRegister struct {
+	x, y uint8
+}
+
+func (i addRegister) String() string {
+	return fmt.Sprintf("ADD V%x,V%x", i.x, i.y)
+}
+
+func (i addRegister) Execute(c *Chip8) {
+	c.registers[i.x] += c.registers[i.y]
+	if c.registers[i.x] < c.registers[i.y] {
+		c.registers[flagRegister] = 1
+	} else {
+		c.registers[flagRegister] = 0
+	}
+}
+
+// SubRegister 8XY5: Subtract the value of register VY from register VX
+// Set VF to 00 if a borrow occurs
+// Set VF to 01 if a borrow does not occur
+func SubRegister(opcode uint16) Instruction {
+	return &subRegister{
+		x: uint8(opcode>>8) & 0xF,
+		y: uint8(opcode>>4) & 0xF,
+	}
+}
+
+type subRegister struct {
+	x, y uint8
+}
+
+func (i subRegister) String() string {
+	return fmt.Sprintf("SUB V%x,V%x", i.x, i.y)
+}
+
+func (i subRegister) Execute(c *Chip8) {
+	if c.registers[i.y] > c.registers[i.x] {
+		c.registers[flagRegister] = 1
+	} else {
+		c.registers[flagRegister] = 0
+	}
+	c.registers[i.x] -= c.registers[i.y]
+}
+
+// ReverseSubRegister 8XY7: Set register VX to the value of VY minus VX
+// Set VF to 00 if a borrow occurs
+// Set VF to 01 if a borrow does not occur
+func ReverseSubRegister(opcode uint16) Instruction {
+	return &reverseSubRegister{
+		x: uint8(opcode>>8) & 0xF,
+		y: uint8(opcode>>4) & 0xF,
+	}
+}
+
+type reverseSubRegister struct {
+	x, y uint8
+}
+
+func (i reverseSubRegister) String() string {
+	return fmt.Sprintf("RSB V%x,V%x", i.x, i.y)
+}
+
+func (i reverseSubRegister) Execute(c *Chip8) {
+	if c.registers[i.x] > c.registers[i.y] {
+		c.registers[flagRegister] = 1
+	} else {
+		c.registers[flagRegister] = 0
+	}
+	c.registers[i.x] = c.registers[i.y] - c.registers[i.x]
+}
+
+// SkipNotEqualRegister 9XY0: Skip the following instruction
+// if the value of register VX is not equal to the value of register VY
 func SkipNotEqualRegister(opcode uint16) Instruction {
 	return &skipNotEqualRegister{
 		x: uint8(opcode>>8) & 0xF,
@@ -359,5 +442,5 @@ func (i drawSprite) Execute(c *Chip8) {
 		}
 	}
 
-	c.registers[0xF] = vf
+	c.registers[flagRegister] = vf
 }
