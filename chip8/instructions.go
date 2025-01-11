@@ -490,3 +490,47 @@ func (i drawSprite) Execute(c *Chip8) {
 
 	c.registers[flagRegister] = vf
 }
+
+// Read FX65: Fill registers V0 to VX inclusive with the values stored in memory starting at address I
+// I is set to I + X + 1 after operation
+func Read(opcode uint16) Instruction {
+	return &read{
+		x: (opcode & 0x0F00) >> 8,
+	}
+}
+
+type read struct {
+	x uint16
+}
+
+func (i read) String() string {
+	return fmt.Sprintf("READ V0-V%x", i.x)
+}
+
+func (i read) Execute(c *Chip8) {
+	high := i.x + 1
+	copy(c.registers[:high], c.memory[c.index:c.index+high])
+	c.index += high
+}
+
+// Write FX55: Store the values of registers V0 to VX inclusive in memory starting at address I
+// I is set to I + X + 1 after operation
+func Write(opcode uint16) Instruction {
+	return &write{
+		x: (opcode & 0x0F00) >> 8,
+	}
+}
+
+type write struct {
+	x uint16
+}
+
+func (i write) String() string {
+	return fmt.Sprintf("WRITE V0-V%x", i.x)
+}
+
+func (i write) Execute(c *Chip8) {
+	high := i.x + 1
+	copy(c.memory[c.index:c.index+high], c.registers[:high])
+	c.index += high
+}
