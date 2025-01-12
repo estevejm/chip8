@@ -347,8 +347,9 @@ func (i shiftRight) String() string {
 }
 
 func (i shiftRight) Execute(c *Chip8) {
-	c.registers[flagRegister] = c.registers[i.y] & 1
+	out := c.registers[i.y] & 1
 	c.registers[i.x] = c.registers[i.y] >> 1
+	c.registers[flagRegister] = out
 }
 
 // ReverseSubRegister 8XY7: Set register VX to the value of VY minus VX
@@ -398,8 +399,9 @@ func (i shiftLeft) String() string {
 }
 
 func (i shiftLeft) Execute(c *Chip8) {
-	c.registers[flagRegister] = c.registers[i.y] & 0x80
+	out := c.registers[i.y] >> 7
 	c.registers[i.x] = c.registers[i.y] << 1
+	c.registers[flagRegister] = out
 }
 
 // SkipNotEqualRegister 9XY0: Skip the following instruction
