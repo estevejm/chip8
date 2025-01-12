@@ -42,7 +42,7 @@ func TestSubRegister(t *testing.T) {
 
 	assert.Equal(t, byte(0x04), c.registers[0])
 	assert.Equal(t, byte(0x03), c.registers[1])
-	assert.Equal(t, byte(0x00), c.registers[0xF])
+	assert.Equal(t, byte(0x01), c.registers[0xF])
 }
 
 func TestSubRegisterBorrow(t *testing.T) {
@@ -54,7 +54,7 @@ func TestSubRegisterBorrow(t *testing.T) {
 	i.Execute(c)
 
 	assert.Equal(t, byte(0xff), c.registers[0])
-	assert.Equal(t, byte(0x01), c.registers[0xF])
+	assert.Equal(t, byte(0x00), c.registers[0xF])
 }
 
 func TestReverseSubRegister(t *testing.T) {
@@ -67,7 +67,7 @@ func TestReverseSubRegister(t *testing.T) {
 
 	assert.Equal(t, byte(0x04), c.registers[0])
 	assert.Equal(t, byte(0x07), c.registers[1])
-	assert.Equal(t, byte(0x00), c.registers[0xF])
+	assert.Equal(t, byte(0x01), c.registers[0xF])
 }
 
 func TestReverseSubRegisterBorrow(t *testing.T) {
@@ -79,5 +79,5 @@ func TestReverseSubRegisterBorrow(t *testing.T) {
 	i.Execute(c)
 
 	assert.Equal(t, byte(0xff), c.registers[0])
-	assert.Equal(t, byte(0x01), c.registers[0xF])
+	assert.Equal(t, byte(0x00), c.registers[0xF])
 }

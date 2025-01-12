@@ -320,9 +320,9 @@ func (i subRegister) String() string {
 
 func (i subRegister) Execute(c *Chip8) {
 	if c.registers[i.y] > c.registers[i.x] {
-		c.registers[flagRegister] = 1
-	} else {
 		c.registers[flagRegister] = 0
+	} else {
+		c.registers[flagRegister] = 1
 	}
 	c.registers[i.x] -= c.registers[i.y]
 }
@@ -370,9 +370,9 @@ func (i reverseSubRegister) String() string {
 
 func (i reverseSubRegister) Execute(c *Chip8) {
 	if c.registers[i.x] > c.registers[i.y] {
-		c.registers[flagRegister] = 1
-	} else {
 		c.registers[flagRegister] = 0
+	} else {
+		c.registers[flagRegister] = 1
 	}
 	c.registers[i.x] = c.registers[i.y] - c.registers[i.x]
 }
