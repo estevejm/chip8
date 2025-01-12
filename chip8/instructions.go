@@ -319,12 +319,13 @@ func (i subRegister) String() string {
 }
 
 func (i subRegister) Execute(c *Chip8) {
-	if c.registers[i.y] > c.registers[i.x] {
+	borrow := c.registers[i.y] > c.registers[i.x]
+	c.registers[i.x] -= c.registers[i.y]
+	if borrow {
 		c.registers[flagRegister] = 0
 	} else {
 		c.registers[flagRegister] = 1
 	}
-	c.registers[i.x] -= c.registers[i.y]
 }
 
 // ShiftRight 8XY6: Store the value of register VY shifted right one bit in register VX
@@ -369,12 +370,13 @@ func (i reverseSubRegister) String() string {
 }
 
 func (i reverseSubRegister) Execute(c *Chip8) {
-	if c.registers[i.x] > c.registers[i.y] {
+	borrow := c.registers[i.x] > c.registers[i.y]
+	c.registers[i.x] = c.registers[i.y] - c.registers[i.x]
+	if borrow {
 		c.registers[flagRegister] = 0
 	} else {
 		c.registers[flagRegister] = 1
 	}
-	c.registers[i.x] = c.registers[i.y] - c.registers[i.x]
 }
 
 // ShiftLeft 8XYE: Store the value of register VY shifted left one bit in register VX

@@ -57,6 +57,30 @@ func TestSubRegisterBorrow(t *testing.T) {
 	assert.Equal(t, byte(0x00), c.registers[0xF])
 }
 
+func TestSubRegisterVfAsX(t *testing.T) {
+	c := NewChip8(slog.Default())
+	c.registers[0xF] = 0x07
+	c.registers[1] = 0x03
+
+	i := subRegister{x: 0xF, y: 1}
+	i.Execute(c)
+
+	assert.Equal(t, byte(0x03), c.registers[1])
+	assert.Equal(t, byte(0x01), c.registers[0xF])
+}
+
+func TestSubRegisterVfAsY(t *testing.T) {
+	c := NewChip8(slog.Default())
+	c.registers[0] = 0x07
+	c.registers[0xF] = 0x03
+
+	i := subRegister{x: 0, y: 0xF}
+	i.Execute(c)
+
+	assert.Equal(t, byte(0x04), c.registers[0])
+	assert.Equal(t, byte(0x01), c.registers[0xF])
+}
+
 func TestReverseSubRegister(t *testing.T) {
 	c := NewChip8(slog.Default())
 	c.registers[0] = 0x03
@@ -80,4 +104,28 @@ func TestReverseSubRegisterBorrow(t *testing.T) {
 
 	assert.Equal(t, byte(0xff), c.registers[0])
 	assert.Equal(t, byte(0x00), c.registers[0xF])
+}
+
+func TestReverseSubRegisterVfAsX(t *testing.T) {
+	c := NewChip8(slog.Default())
+	c.registers[0xF] = 0x03
+	c.registers[1] = 0x07
+
+	i := reverseSubRegister{x: 0xF, y: 1}
+	i.Execute(c)
+
+	assert.Equal(t, byte(0x07), c.registers[1])
+	assert.Equal(t, byte(0x01), c.registers[0xF])
+}
+
+func TestReverseSubRegisterVfAsY(t *testing.T) {
+	c := NewChip8(slog.Default())
+	c.registers[0] = 0x03
+	c.registers[0xF] = 0x07
+
+	i := reverseSubRegister{x: 0, y: 0xF}
+	i.Execute(c)
+
+	assert.Equal(t, byte(0x04), c.registers[0])
+	assert.Equal(t, byte(0x01), c.registers[0xF])
 }
