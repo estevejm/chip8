@@ -491,26 +491,46 @@ func (i drawSprite) Execute(c *Chip8) {
 	c.registers[flagRegister] = vf
 }
 
-// Read FX65: Fill registers V0 to VX inclusive with the values stored in memory starting at address I
-// I is set to I + X + 1 after operation
-func Read(opcode uint16) Instruction {
-	return &read{
-		x: (opcode & 0x0F00) >> 8,
+// AddIndex FX1E: Add the value stored in register VX to register I
+func AddIndex(opcode uint16) Instruction {
+	return &addIndex{
+		x: uint8(opcode>>8) & 0xF,
 	}
 }
 
-type read struct {
-	x uint16
+type addIndex struct {
+	x uint8
 }
 
-func (i read) String() string {
-	return fmt.Sprintf("READ V0-V%x", i.x)
+func (i addIndex) String() string {
+	return fmt.Sprintf("ADDI V%x", i.x)
 }
 
-func (i read) Execute(c *Chip8) {
-	high := i.x + 1
-	copy(c.registers[:high], c.memory[c.index:c.index+high])
-	c.index += high
+func (i addIndex) Execute(c *Chip8) {
+	c.index += uint16(c.registers[i.x])
+}
+
+// BCD FX33: Store the binary-coded decimal equivalent of the value stored in register VX
+// at addresses I, I+1, and I + 2
+func BCD(opcode uint16) Instruction {
+	return &bcd{
+		x: uint8(opcode>>8) & 0xF,
+	}
+}
+
+type bcd struct {
+	x uint8
+}
+
+func (i bcd) String() string {
+	return fmt.Sprintf("BCD V%x", i.x)
+}
+
+func (i bcd) Execute(c *Chip8) {
+	v := c.registers[i.x]
+	c.memory[c.index] = v / 100
+	c.memory[c.index+1] = v % 100 / 10
+	c.memory[c.index+2] = v % 10
 }
 
 // Write FX55: Store the values of registers V0 to VX inclusive in memory starting at address I
@@ -532,5 +552,27 @@ func (i write) String() string {
 func (i write) Execute(c *Chip8) {
 	high := i.x + 1
 	copy(c.memory[c.index:c.index+high], c.registers[:high])
+	c.index += high
+}
+
+// Read FX65: Fill registers V0 to VX inclusive with the values stored in memory starting at address I
+// I is set to I + X + 1 after operation
+func Read(opcode uint16) Instruction {
+	return &read{
+		x: (opcode & 0x0F00) >> 8,
+	}
+}
+
+type read struct {
+	x uint16
+}
+
+func (i read) String() string {
+	return fmt.Sprintf("READ V0-V%x", i.x)
+}
+
+func (i read) Execute(c *Chip8) {
+	high := i.x + 1
+	copy(c.registers[:high], c.memory[c.index:c.index+high])
 	c.index += high
 }
