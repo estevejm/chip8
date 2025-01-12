@@ -99,7 +99,7 @@ type skipEqual struct {
 }
 
 func (i skipEqual) String() string {
-	return fmt.Sprintf("SKE V%x,%d", i.x, i.n)
+	return fmt.Sprintf("SKE V%x,%x", i.x, i.n)
 }
 
 func (i skipEqual) Execute(c *Chip8) {
@@ -121,7 +121,7 @@ type skipNotEqual struct {
 }
 
 func (i skipNotEqual) String() string {
-	return fmt.Sprintf("SKNE V%x,%d", i.x, i.n)
+	return fmt.Sprintf("SKNE V%x,%x", i.x, i.n)
 }
 
 func (i skipNotEqual) Execute(c *Chip8) {
@@ -166,7 +166,7 @@ type load struct {
 }
 
 func (i load) String() string {
-	return fmt.Sprintf("LOAD V%x,%d", i.x, i.n)
+	return fmt.Sprintf("LOAD V%x,%x", i.x, i.n)
 }
 
 func (i load) Execute(c *Chip8) {
@@ -186,7 +186,7 @@ type add struct {
 }
 
 func (i add) String() string {
-	return fmt.Sprintf("ADD V%x,%d", i.x, i.n)
+	return fmt.Sprintf("ADD V%x,%x", i.x, i.n)
 }
 
 func (i add) Execute(c *Chip8) {
@@ -457,7 +457,7 @@ type drawSprite struct {
 }
 
 func (i drawSprite) String() string {
-	return fmt.Sprintf("DRAW V%x,V%x,%d", i.x, i.y, i.n)
+	return fmt.Sprintf("DRAW V%x,V%x,%x", i.x, i.y, i.n)
 }
 
 func (i drawSprite) Execute(c *Chip8) {
