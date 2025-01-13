@@ -11,7 +11,7 @@ import (
 
 const (
 	screenWidth = 1024
-	defaultTPS  = 700
+	defaultTPS  = 1000
 	defaultRom  = "roms/1-chip8-logo.ch8"
 )
 
