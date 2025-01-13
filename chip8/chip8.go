@@ -197,7 +197,7 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 	case 0x8000:
 		switch opcode & 0xF {
 		case 0x0:
-			return Move(opcode), true
+			return LoadRegister(opcode), true
 		case 0x1:
 			return Or(opcode), true
 		case 0x2:

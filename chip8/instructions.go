@@ -193,23 +193,23 @@ func (i add) Execute(c *Chip8) {
 	c.registers[i.x] += i.n
 }
 
-// Move 8XY0: Store the value of register VY in register VX
-func Move(opcode uint16) Instruction {
-	return &move{
+// LoadRegister 8XY0: Store the value of register VY in register VX
+func LoadRegister(opcode uint16) Instruction {
+	return &loadRegister{
 		x: uint8(opcode>>8) & 0xF,
 		y: uint8(opcode>>4) & 0xF,
 	}
 }
 
-type move struct {
+type loadRegister struct {
 	x, y uint8
 }
 
-func (i move) String() string {
-	return fmt.Sprintf("MOVE V%x,V%x", i.x, i.y)
+func (i loadRegister) String() string {
+	return fmt.Sprintf("LOAD V%x,V%x", i.x, i.y)
 }
 
-func (i move) Execute(c *Chip8) {
+func (i loadRegister) Execute(c *Chip8) {
 	c.registers[i.x] = c.registers[i.y]
 }
 
