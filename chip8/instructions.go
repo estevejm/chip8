@@ -485,7 +485,7 @@ func (i drawSprite) Execute(c *Chip8) {
 	vy := int(c.registers[i.y]) % screenHeight
 
 	sprite := c.memory[c.index : c.index+uint16(i.n)]
-	vf := byte(0)
+	vf := uint8(0)
 	for i, b := range sprite {
 		for j := 0; j < bytePixels; j++ {
 			pixelX := vx + j
@@ -499,7 +499,7 @@ func (i drawSprite) Execute(c *Chip8) {
 			screenPixelIsSet := c.screen[pixelY][pixelX]
 			spritePixelIsSet := (b>>(bytePixels-1-j))&1 == 1
 			if screenPixelIsSet && spritePixelIsSet {
-				vf = byte(1) // collision detected
+				vf = uint8(1) // collision detected
 			}
 
 			// draw using XOR, boolean != should be equivalent
@@ -508,6 +508,44 @@ func (i drawSprite) Execute(c *Chip8) {
 	}
 
 	c.registers[flagRegister] = vf
+}
+
+// LoadRegisterDelayTimer FX07: Store the current value of the delay timer in register VX
+func LoadRegisterDelayTimer(opcode uint16) Instruction {
+	return &loadRegisterDelayTimer{
+		x: uint8(opcode>>8) & 0xF,
+	}
+}
+
+type loadRegisterDelayTimer struct {
+	x uint8
+}
+
+func (i loadRegisterDelayTimer) String() string {
+	return fmt.Sprintf("LOAD V%x,DT", i.x)
+}
+
+func (i loadRegisterDelayTimer) Execute(c *Chip8) {
+	c.registers[i.x] = c.delayTimer
+}
+
+// LoadDelayTimerRegister FX15: Set the delay timer to the value of register VX
+func LoadDelayTimerRegister(opcode uint16) Instruction {
+	return &loadDelayTimerRegister{
+		x: uint8(opcode>>8) & 0xF,
+	}
+}
+
+type loadDelayTimerRegister struct {
+	x uint8
+}
+
+func (i loadDelayTimerRegister) String() string {
+	return fmt.Sprintf("LOAD DT,V%x", i.x)
+}
+
+func (i loadDelayTimerRegister) Execute(c *Chip8) {
+	c.delayTimer = c.registers[i.x]
 }
 
 // AddIndex FX1E: Add the value stored in register VX to register I

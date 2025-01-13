@@ -29,14 +29,14 @@ var (
 	pixelColorOff = color.Black
 )
 
-func hexdump8(b byte) string {
+func hexdump8(b uint8) string {
 	return fmt.Sprintf("%02x", b)
 }
 func hexdump16(b uint16) string {
 	return fmt.Sprintf("%04x", b)
 }
 
-type Memory [memoryLocations]byte
+type Memory [memoryLocations]uint8
 
 func (m Memory) String() string {
 	const bytesPerRow = 16
@@ -57,7 +57,7 @@ func (m Memory) String() string {
 	return sb.String()
 }
 
-type Registers [registerCount]byte
+type Registers [registerCount]uint8
 
 func (r Registers) String() string {
 	var sb strings.Builder
@@ -91,6 +91,7 @@ type Chip8 struct {
 	stackPointer   uint8
 	programCounter uint16
 	index          uint16
+	delayTimer     uint8
 	screen         Screen
 }
 
@@ -103,6 +104,7 @@ func NewChip8(log *slog.Logger) *Chip8 {
 		stackPointer:   0,
 		programCounter: programStart,
 		index:          0,
+		delayTimer:     0,
 		screen:         Screen{},
 	}
 }
@@ -153,6 +155,7 @@ func (c *Chip8) Update() error {
 		slog.Any("V", c.registers),
 		slog.Int("SP", int(c.stackPointer)),
 		slog.Any("S", c.stack),
+		slog.Any("DT", hexdump8(c.delayTimer)),
 	)
 
 	return nil
@@ -221,6 +224,10 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 		return DrawSprite(opcode), true
 	case 0xF000:
 		switch opcode & 0xFF {
+		case 0x07:
+			return LoadRegisterDelayTimer(opcode), true
+		case 0x15:
+			return LoadDelayTimerRegister(opcode), true
 		case 0x1E:
 			return AddIndex(opcode), true
 		case 0x33:
