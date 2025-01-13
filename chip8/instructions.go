@@ -9,6 +9,21 @@ type Instruction interface {
 	Execute(c *Chip8)
 }
 
+// NoOperation do nothing
+func NoOperation() Instruction {
+	return &noOperation{}
+}
+
+type noOperation struct{}
+
+func (i noOperation) String() string {
+	return "NOP"
+}
+
+func (i noOperation) Execute(_ *Chip8) {
+
+}
+
 // ClearScreen 00E0: Clear the screen
 func ClearScreen() Instruction {
 	return &clearScreen{}

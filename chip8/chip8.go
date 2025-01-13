@@ -177,8 +177,6 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 			return ClearScreen(), true
 		case 0xEE:
 			return Return(), true
-		default:
-			return nil, false
 		}
 	case 0x1000:
 		return Jump(opcode), true
@@ -214,8 +212,6 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 			return ReverseSubRegister(opcode), true
 		case 0xE:
 			return ShiftLeft(opcode), true
-		default:
-			return nil, false
 		}
 	case 0x9000:
 		return SkipNotEqualRegister(opcode), true
@@ -233,12 +229,10 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 			return Write(opcode), true
 		case 0x65:
 			return Read(opcode), true
-		default:
-			return nil, false
 		}
-	default:
-		return nil, false
 	}
+
+	return NoOperation(), false
 }
 
 func (c *Chip8) Draw(screen *ebiten.Image) {
