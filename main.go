@@ -32,7 +32,7 @@ func main() {
 	ebiten.SetWindowTitle("CHIP-8")
 	ebiten.SetTPS(tps)
 
-	emulator := chip8.NewChip8(log)
+	emulator := chip8.NewChip8(uint(tps), log)
 	if err := emulator.LoadROMFromPath(rom); err != nil {
 		log.Error("Failed to load ROM file")
 		os.Exit(1)

@@ -22,6 +22,7 @@ const (
 	screenWidth      = 64
 	screenHeight     = 32
 	bytePixels       = 8
+	timerRateHz      = 60
 )
 
 var (
@@ -91,11 +92,11 @@ type Chip8 struct {
 	stackPointer   uint8
 	programCounter uint16
 	index          uint16
-	delayTimer     uint8
+	delayTimer     *Timer
 	screen         Screen
 }
 
-func NewChip8(log *slog.Logger) *Chip8 {
+func NewChip8(tps uint, log *slog.Logger) *Chip8 {
 	return &Chip8{
 		log:            log,
 		memory:         Memory{},
@@ -104,7 +105,7 @@ func NewChip8(log *slog.Logger) *Chip8 {
 		stackPointer:   0,
 		programCounter: programStart,
 		index:          0,
-		delayTimer:     0,
+		delayTimer:     NewTimer(tps, timerRateHz),
 		screen:         Screen{},
 	}
 }
@@ -148,6 +149,9 @@ func (c *Chip8) Update() error {
 	c.log.Info("decode: " + instruction.String())
 
 	instruction.Execute(c)
+
+	c.delayTimer.Update()
+
 	c.log.Info(
 		"execute:",
 		slog.String("PC", hexdump16(c.programCounter)),
@@ -155,7 +159,7 @@ func (c *Chip8) Update() error {
 		slog.Any("V", c.registers),
 		slog.Int("SP", int(c.stackPointer)),
 		slog.Any("S", c.stack),
-		slog.Any("DT", hexdump8(c.delayTimer)),
+		slog.Any("DT", c.delayTimer),
 	)
 
 	return nil

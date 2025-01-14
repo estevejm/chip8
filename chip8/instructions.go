@@ -526,7 +526,7 @@ func (i loadRegisterDelayTimer) String() string {
 }
 
 func (i loadRegisterDelayTimer) Execute(c *Chip8) {
-	c.registers[i.x] = c.delayTimer
+	c.registers[i.x] = c.delayTimer.GetValue()
 }
 
 // LoadDelayTimerRegister FX15: Set the delay timer to the value of register VX
@@ -545,7 +545,7 @@ func (i loadDelayTimerRegister) String() string {
 }
 
 func (i loadDelayTimerRegister) Execute(c *Chip8) {
-	c.delayTimer = c.registers[i.x]
+	c.delayTimer.SetValue(c.registers[i.x])
 }
 
 // AddIndex FX1E: Add the value stored in register VX to register I
