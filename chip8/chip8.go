@@ -93,7 +93,7 @@ type Chip8 struct {
 	programCounter uint16
 	index          uint16
 	delayTimer     *Timer
-	keys           Keys
+	input          *Input
 	screen         Screen
 }
 
@@ -107,7 +107,7 @@ func NewChip8(tps uint, log *slog.Logger) *Chip8 {
 		programCounter: programStart,
 		index:          0,
 		delayTimer:     NewTimer(tps, timerRateHz),
-		keys:           Keys{},
+		input:          NewInput(),
 		screen:         Screen{},
 	}
 }
@@ -139,21 +139,23 @@ func (c *Chip8) LoadROM(r io.Reader) error {
 }
 
 func (c *Chip8) Update() error {
-	c.keys.detectInput()
-	c.log.Info("input:", slog.String("V", c.keys.String()))
+	wait := c.input.Detect()
+	c.log.Info("input:", slog.String("V", c.input.String()))
 
-	opcode := c.fetch()
-	c.log.Info("fetch:", slog.String("PC", hexdump16(c.programCounter)), slog.String("opcode", hexdump16(opcode)))
+	if !wait {
+		opcode := c.fetch()
+		c.log.Info("fetch:", slog.String("PC", hexdump16(c.programCounter)), slog.String("opcode", hexdump16(opcode)))
 
-	c.incrementProgramCounter()
+		c.incrementProgramCounter()
 
-	instruction, ok := c.decode(opcode)
-	if !ok {
-		return fmt.Errorf("invalid opcode: %s", hexdump16(opcode))
+		instruction, ok := c.decode(opcode)
+		if !ok {
+			return fmt.Errorf("invalid opcode: %s", hexdump16(opcode))
+		}
+		c.log.Info("decode: " + instruction.String())
+
+		instruction.Execute(c)
 	}
-	c.log.Info("decode: " + instruction.String())
-
-	instruction.Execute(c)
 
 	c.delayTimer.Update()
 
@@ -240,6 +242,8 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 		}
 	case 0xF000:
 		switch opcode & 0xFF {
+		case 0x0A:
+			return WaitKey(opcode), true
 		case 0x07:
 			return LoadRegisterDelayTimer(opcode), true
 		case 0x15:

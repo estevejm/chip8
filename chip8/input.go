@@ -2,6 +2,7 @@ package chip8
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -33,21 +34,58 @@ var keyMap = [keyCount]ebiten.Key{
 	ebiten.KeyV,
 }
 
-// Keys true if pressed
-type Keys [keyCount]bool
+type Input struct {
+	keys         [keyCount]bool // true if pressed
+	waitCallback func(uint8)
+}
 
-func (k *Keys) detectInput() {
-	for i, key := range keyMap {
-		k[i] = inpututil.KeyPressDuration(key) > 0
+func NewInput() *Input {
+	return &Input{
+		keys:         [keyCount]bool{},
+		waitCallback: nil,
 	}
 }
 
-func (k *Keys) String() string {
+// Detect return true waiting for key press + release, false otherwise
+func (i *Input) Detect() bool {
+	buf := make([]ebiten.Key, 0, keyCount)
+	if i.isWaiting() {
+		detected := inpututil.AppendJustReleasedKeys(buf)
+		if len(detected) == 0 {
+			return true
+		}
+
+		index := slices.Index(keyMap[:], detected[0]) // TODO: use map instead
+		i.waitCallback(uint8(index))
+		i.waitCallback = nil
+
+		return false
+	}
+
+	detected := inpututil.AppendPressedKeys(buf)
+	for j, key := range keyMap {
+		i.keys[j] = slices.Contains(detected, key) // TODO: use map instead
+	}
+
+	return false
+}
+
+func (i *Input) Wait(callback func(uint8)) {
+	i.waitCallback = callback
+}
+
+func (i *Input) isWaiting() bool {
+	return i.waitCallback != nil
+}
+
+func (i *Input) String() string {
 	var sb strings.Builder
 
-	for i, b := range k {
-		sb.WriteString(fmt.Sprintf("%x:%t ", i, b))
+	for j, b := range i.keys {
+		sb.WriteString(fmt.Sprintf("%x:%t ", j, b))
 	}
+
+	sb.WriteString(fmt.Sprintf("wait:%t", i.isWaiting()))
 
 	return strings.TrimSpace(sb.String())
 }

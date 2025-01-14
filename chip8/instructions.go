@@ -528,7 +528,7 @@ func (i skipPressed) String() string {
 
 func (i skipPressed) Execute(c *Chip8) {
 	v := c.registers[i.x]
-	if c.keys[v] {
+	if c.input.keys[v] {
 		c.incrementProgramCounter()
 	}
 }
@@ -551,7 +551,7 @@ func (i skipNotPressed) String() string {
 
 func (i skipNotPressed) Execute(c *Chip8) {
 	v := c.registers[i.x]
-	if !c.keys[v] {
+	if !c.input.keys[v] {
 		c.incrementProgramCounter()
 	}
 }
@@ -573,6 +573,27 @@ func (i loadRegisterDelayTimer) String() string {
 
 func (i loadRegisterDelayTimer) Execute(c *Chip8) {
 	c.registers[i.x] = c.delayTimer.GetValue()
+}
+
+// WaitKey FX0A: Wait for a keypress and store the result in register VX
+func WaitKey(opcode uint16) Instruction {
+	return &waitKey{
+		x: uint8(opcode>>8) & 0xF,
+	}
+}
+
+type waitKey struct {
+	x uint8
+}
+
+func (i waitKey) String() string {
+	return fmt.Sprintf("LOAD V%x,K", i.x)
+}
+
+func (i waitKey) Execute(c *Chip8) {
+	c.input.Wait(func(key uint8) {
+		c.registers[i.x] = key
+	})
 }
 
 // LoadDelayTimerRegister FX15: Set the delay timer to the value of register VX
