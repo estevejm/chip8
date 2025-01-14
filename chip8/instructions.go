@@ -510,6 +510,52 @@ func (i drawSprite) Execute(c *Chip8) {
 	c.registers[flagRegister] = vf
 }
 
+// SkipPressed EX9E: Skip the following instruction if the key corresponding to the hex value
+// currently stored in register VX is pressed
+func SkipPressed(opcode uint16) Instruction {
+	return &skipPressed{
+		x: uint8(opcode>>8) & 0xF,
+	}
+}
+
+type skipPressed struct {
+	x uint8
+}
+
+func (i skipPressed) String() string {
+	return fmt.Sprintf("SKP V%x", i.x)
+}
+
+func (i skipPressed) Execute(c *Chip8) {
+	v := c.registers[i.x]
+	if c.keys[v] {
+		c.incrementProgramCounter()
+	}
+}
+
+// SkipNotPressed EXA1: Skip the following instruction if the key corresponding to the hex value
+// currently stored in register VX is not pressed
+func SkipNotPressed(opcode uint16) Instruction {
+	return &skipNotPressed{
+		x: uint8(opcode>>8) & 0xF,
+	}
+}
+
+type skipNotPressed struct {
+	x uint8
+}
+
+func (i skipNotPressed) String() string {
+	return fmt.Sprintf("SKNP V%x", i.x)
+}
+
+func (i skipNotPressed) Execute(c *Chip8) {
+	v := c.registers[i.x]
+	if !c.keys[v] {
+		c.incrementProgramCounter()
+	}
+}
+
 // LoadRegisterDelayTimer FX07: Store the current value of the delay timer in register VX
 func LoadRegisterDelayTimer(opcode uint16) Instruction {
 	return &loadRegisterDelayTimer{

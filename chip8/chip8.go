@@ -231,6 +231,13 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 		return LoadIndex(opcode), true
 	case 0xD000:
 		return DrawSprite(opcode), true
+	case 0xE000:
+		switch opcode & 0xFF {
+		case 0x9E:
+			return SkipPressed(opcode), true
+		case 0xA1:
+			return SkipNotPressed(opcode), true
+		}
 	case 0xF000:
 		switch opcode & 0xFF {
 		case 0x07:
