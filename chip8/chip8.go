@@ -93,6 +93,7 @@ type Chip8 struct {
 	programCounter uint16
 	index          uint16
 	delayTimer     *Timer
+	keys           Keys
 	screen         Screen
 }
 
@@ -106,6 +107,7 @@ func NewChip8(tps uint, log *slog.Logger) *Chip8 {
 		programCounter: programStart,
 		index:          0,
 		delayTimer:     NewTimer(tps, timerRateHz),
+		keys:           Keys{},
 		screen:         Screen{},
 	}
 }
@@ -137,6 +139,9 @@ func (c *Chip8) LoadROM(r io.Reader) error {
 }
 
 func (c *Chip8) Update() error {
+	c.keys.detectInput()
+	c.log.Info("input:", slog.String("V", c.keys.String()))
+
 	opcode := c.fetch()
 	c.log.Info("fetch:", slog.String("PC", hexdump16(c.programCounter)), slog.String("opcode", hexdump16(opcode)))
 
