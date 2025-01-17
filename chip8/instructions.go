@@ -615,6 +615,25 @@ func (i loadDelayTimerRegister) Execute(c *Chip8) {
 	c.delayTimer.SetValue(c.registers[i.x])
 }
 
+// LoadSoundTimerRegister FX15: Set the delay timer to the value of register VX
+func LoadSoundTimerRegister(opcode uint16) Instruction {
+	return &loadSoundTimerRegister{
+		x: uint8(opcode>>8) & 0xF,
+	}
+}
+
+type loadSoundTimerRegister struct {
+	x uint8
+}
+
+func (i loadSoundTimerRegister) String() string {
+	return fmt.Sprintf("LOAD ST,V%x", i.x)
+}
+
+func (i loadSoundTimerRegister) Execute(c *Chip8) {
+	c.soundTimer.SetValue(c.registers[i.x])
+}
+
 // AddIndex FX1E: Add the value stored in register VX to register I
 func AddIndex(opcode uint16) Instruction {
 	return &addIndex{

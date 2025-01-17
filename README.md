@@ -18,3 +18,4 @@ Instructions are documented in output of `go run main.go -h`
 * https://github.com/Timendus/chip8-test-suite (roms directory obtained here)
 * https://chip8.gulrak.net/
 * https://ebitengine.org/
+* https://nachtimwald.com/2024/03/12/chip8-dev-challenge-sound/

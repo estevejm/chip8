@@ -93,8 +93,10 @@ type Chip8 struct {
 	programCounter uint16
 	index          uint16
 	delayTimer     *Timer
+	soundTimer     *Timer
 	input          *Input
 	screen         Screen
+	sound          *Sound
 }
 
 func NewChip8(tps uint, log *slog.Logger) *Chip8 {
@@ -107,8 +109,10 @@ func NewChip8(tps uint, log *slog.Logger) *Chip8 {
 		programCounter: programStart,
 		index:          0,
 		delayTimer:     NewTimer(tps, timerRateHz),
+		soundTimer:     NewTimer(tps, timerRateHz),
 		input:          NewInput(),
 		screen:         Screen{},
+		sound:          NewSound(),
 	}
 }
 
@@ -158,6 +162,9 @@ func (c *Chip8) Update() error {
 	}
 
 	c.delayTimer.Update()
+	c.soundTimer.Update()
+
+	c.outputSound()
 
 	c.log.Info(
 		"execute:",
@@ -167,9 +174,18 @@ func (c *Chip8) Update() error {
 		slog.Int("SP", int(c.stackPointer)),
 		slog.Any("S", c.stack),
 		slog.Any("DT", c.delayTimer),
+		slog.Any("ST", c.soundTimer),
 	)
 
 	return nil
+}
+
+func (c *Chip8) outputSound() {
+	if c.soundTimer.GetValue() == 0 {
+		c.sound.Pause()
+	} else {
+		c.sound.Play()
+	}
 }
 
 func (c *Chip8) fetch() uint16 {
@@ -248,6 +264,8 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 			return LoadRegisterDelayTimer(opcode), true
 		case 0x15:
 			return LoadDelayTimerRegister(opcode), true
+		case 0x18:
+			return LoadSoundTimerRegister(opcode), true
 		case 0x1E:
 			return AddIndex(opcode), true
 		case 0x33:
