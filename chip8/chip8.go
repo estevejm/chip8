@@ -260,10 +260,10 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 		}
 	case 0xF000:
 		switch opcode & 0xFF {
-		case 0x0A:
-			return WaitKey(opcode), true
 		case 0x07:
 			return LoadRegisterDelayTimer(opcode), true
+		case 0x0A:
+			return WaitKey(opcode), true
 		case 0x15:
 			return LoadDelayTimerRegister(opcode), true
 		case 0x18:
