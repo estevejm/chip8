@@ -39,7 +39,12 @@ func hexdump16(b uint16) string {
 
 type Memory [memoryLocations]uint8
 
-func (m Memory) String() string {
+func (m *Memory) Write(start uint16, bytes []byte) {
+	// TODO: ensure data copied in bounds -> check data len
+	copy(m[start:], bytes)
+}
+
+func (m *Memory) String() string {
 	const bytesPerRow = 16
 	var sb strings.Builder
 
@@ -100,9 +105,12 @@ type Chip8 struct {
 }
 
 func NewChip8(tps uint, log *slog.Logger) *Chip8 {
+	memory := Memory{}
+	memory.Write(fontStartMemoryAddress, font[:])
+
 	return &Chip8{
 		log:            log,
-		memory:         Memory{},
+		memory:         memory,
 		registers:      Registers{},
 		stack:          Stack{},
 		stackPointer:   0,
@@ -135,8 +143,7 @@ func (c *Chip8) LoadROM(r io.Reader) error {
 		return err
 	}
 
-	// TODO: ensure data copied in bounds -> check data len
-	copy(c.memory[programStart:], data)
+	c.memory.Write(programStart, data)
 	c.log.Info("ROM loaded", slog.Int("bytes", len(data)))
 	//println(c.memory.String())
 	return nil
