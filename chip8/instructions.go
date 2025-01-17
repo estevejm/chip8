@@ -461,6 +461,25 @@ func (i loadIndex) Execute(c *Chip8) {
 	c.index = i.n
 }
 
+// JumpRegister0 BNNN: Jump to address NNN + V0
+func JumpRegister0(opcode uint16) Instruction {
+	return &jumpRegister0{
+		n: opcode & 0xFFF,
+	}
+}
+
+type jumpRegister0 struct {
+	n uint16
+}
+
+func (i jumpRegister0) String() string {
+	return fmt.Sprintf("JUMP 0x%04x+V0", i.n)
+}
+
+func (i jumpRegister0) Execute(c *Chip8) {
+	c.programCounter = i.n + uint16(c.registers[0])
+}
+
 // DrawSprite DXYN: Draw a sprite at position VX, VY with N bytes of sprite data starting at the address stored in I
 // Set VF to 01 if any set pixels are changed to unset, and 00 otherwise
 func DrawSprite(opcode uint16) Instruction {

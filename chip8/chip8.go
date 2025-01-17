@@ -247,6 +247,8 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 		return SkipNotEqualRegister(opcode), true
 	case 0xA000:
 		return LoadIndex(opcode), true
+	case 0xB000:
+		return JumpRegister0(opcode), true
 	case 0xD000:
 		return DrawSprite(opcode), true
 	case 0xE000:
