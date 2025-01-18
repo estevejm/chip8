@@ -636,7 +636,7 @@ func (i loadDigitIndex) String() string {
 }
 
 func (i loadDigitIndex) Execute(c *Chip8) {
-	c.index = fontStartMemoryAddress + uint16(c.registers[i.x])
+	c.index = fontStartMemoryAddress + uint16(c.registers[i.x]*digitBytes)
 }
 
 // BCD FX33: Store the binary-coded decimal equivalent of the value stored in register VX

@@ -1,8 +1,9 @@
 package chip8
 
 const (
-	fontCount = 16
-	fontLen   = fontCount * 5
+	fontCount  = 16
+	digitBytes = 5
+	fontLen    = fontCount * digitBytes
 )
 
 var font = [fontLen]byte{
