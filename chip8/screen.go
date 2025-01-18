@@ -18,13 +18,14 @@ var (
 	pixelColorOff = color.Black
 )
 
-// TODO: store frame buffer in byte array instead of bidimensional boolean array
 type Screen struct {
-	buffer [screenHeight][screenWidth]bool
+	buffer *ebiten.Image
 }
 
 func NewScreen() *Screen {
-	return &Screen{buffer: [screenHeight][screenWidth]bool{}}
+	return &Screen{
+		buffer: ebiten.NewImage(screenWidth, screenHeight),
+	}
 }
 
 func (s *Screen) Layout() (w, h int) {
@@ -32,33 +33,30 @@ func (s *Screen) Layout() (w, h int) {
 }
 
 func (s *Screen) Clear() {
-	for y := range s.buffer {
-		for x := range s.buffer[y] {
-			s.buffer[y][x] = false
-		}
-	}
-}
-
-func (s *Screen) Draw(image *ebiten.Image) {
-	// TODO: write pixels only if there are changes
-	for i := range s.buffer {
-		for j := range s.buffer[i] {
-			image.Set(j, i, pixelColor(s.buffer[i][j]))
-		}
-	}
+	s.buffer.Fill(pixelColorOff)
 }
 
 func (s *Screen) Get(x, y int) bool {
-	return s.buffer[y][x]
+	return pixelOn(s.buffer.At(x, y))
 }
 
-func (s *Screen) Set(x, y int, v bool) {
-	s.buffer[y][x] = v
+func (s *Screen) Set(x, y int, on bool) {
+	s.buffer.Set(x, y, pixelColor(on))
 }
 
-func pixelColor(pixelOn bool) color.Color {
-	if pixelOn {
+func (s *Screen) Draw(image *ebiten.Image) {
+	image.DrawImage(s.buffer, nil)
+}
+
+func pixelColor(on bool) color.Color {
+	if on {
 		return pixelColorOn
 	}
 	return pixelColorOff
+}
+
+func pixelOn(c color.Color) bool {
+	r1, g1, b1, a1 := c.RGBA()
+	r2, g2, b2, a2 := pixelColorOn.RGBA()
+	return r1 == r2 && g1 == g2 && b1 == b2 && a1 == a2
 }
