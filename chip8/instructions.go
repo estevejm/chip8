@@ -52,9 +52,7 @@ func (i returnFromSubroutine) String() string {
 }
 
 func (i returnFromSubroutine) Execute(c *Chip8) {
-	// TODO: check stack pointer won't be < 0
-	c.stackPointer--
-	c.fetcher.SetCounter(c.stack[c.stackPointer])
+	c.fetcher.SetCounter(c.stack.Pop())
 }
 
 // Jump 1NNN: Jump to address NNN
@@ -90,9 +88,7 @@ func (i call) String() string {
 }
 
 func (i call) Execute(c *Chip8) {
-	// TODO: check stack overflow
-	c.stack[c.stackPointer] = c.fetcher.GetCounter()
-	c.stackPointer++
+	c.stack.Push(c.fetcher.GetCounter())
 	c.fetcher.SetCounter(i.nnn)
 }
 

@@ -82,10 +82,18 @@ func (i *Input) String() string {
 	var sb strings.Builder
 
 	for j, b := range i.keys {
-		sb.WriteString(fmt.Sprintf("%x:%t ", j, b))
+		sb.WriteString(fmt.Sprintf("%x:%s ", j, boolString(b)))
 	}
 
-	sb.WriteString(fmt.Sprintf("wait:%t", i.isWaiting()))
+	sb.WriteString(fmt.Sprintf("wait:%s", boolString(i.isWaiting())))
 
 	return strings.TrimSpace(sb.String())
+}
+
+func boolString(pressed bool) string {
+	if pressed {
+		return "Y"
+	}
+
+	return "N"
 }

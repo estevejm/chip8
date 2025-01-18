@@ -16,32 +16,30 @@ const (
 )
 
 type Chip8 struct {
-	log          *slog.Logger
-	memory       Memory
-	index        uint16
-	registers    Registers
-	stack        Stack
-	stackPointer uint8
-	fetcher      *Fetcher
-	delayTimer   *Timer
-	input        *Input
-	screen       Screen
-	sound        *Sound
+	log        *slog.Logger
+	memory     Memory
+	index      uint16
+	registers  Registers
+	stack      *Stack
+	fetcher    *Fetcher
+	delayTimer *Timer
+	input      *Input
+	screen     Screen
+	sound      *Sound
 }
 
 func NewChip8(tps uint, log *slog.Logger) *Chip8 {
 	return &Chip8{
-		log:          log,
-		memory:       Memory{},
-		index:        0,
-		registers:    Registers{},
-		stack:        Stack{},
-		stackPointer: 0,
-		fetcher:      NewFetcher(programStartMemoryAddress),
-		delayTimer:   NewTimer(tps),
-		input:        NewInput(),
-		screen:       Screen{},
-		sound:        NewSound(NewTimer(tps)),
+		log:        log,
+		memory:     Memory{},
+		index:      0,
+		registers:  Registers{},
+		stack:      NewStack(),
+		fetcher:    NewFetcher(programStartMemoryAddress),
+		delayTimer: NewTimer(tps),
+		input:      NewInput(),
+		screen:     Screen{},
+		sound:      NewSound(NewTimer(tps)),
 	}
 }
 
@@ -62,8 +60,9 @@ func (c *Chip8) LoadROM(r io.Reader) error {
 }
 
 func (c *Chip8) Update() error {
+	// TODO: wait using channel + select?
 	wait := c.input.Detect()
-	c.log.Info("input  :", slog.String("V", c.input.String()))
+	c.log.Info("input  :", slog.Any("keys", c.input))
 
 	if !wait {
 		if err := c.Cycle(); err != nil {
@@ -79,7 +78,6 @@ func (c *Chip8) Update() error {
 		slog.String("PC", hexdump16(c.fetcher.counter)),
 		slog.String("I", hexdump16(c.index)),
 		slog.Any("V", c.registers),
-		slog.Int("SP", int(c.stackPointer)),
 		slog.Any("S", c.stack),
 		slog.Any("DT", c.delayTimer),
 		slog.Any("ST", c.sound.timer),
