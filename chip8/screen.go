@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	screenWidth  = 64
-	screenHeight = 32
-	bytePixels   = 8
+	screenWidth      = 64
+	screenHeight     = 32
+	screenMultiplier = 16
+	bytePixels       = 8
 )
 
 var (
@@ -18,27 +19,41 @@ var (
 )
 
 // TODO: store frame buffer in byte array instead of bidimensional boolean array
-type Screen [screenHeight][screenWidth]bool
+type Screen struct {
+	buffer [screenHeight][screenWidth]bool
+}
+
+func NewScreen() *Screen {
+	return &Screen{buffer: [screenHeight][screenWidth]bool{}}
+}
 
 func (s *Screen) Layout() (w, h int) {
 	return screenWidth, screenHeight
 }
 
 func (s *Screen) Clear() {
-	for y := range s {
-		for x := range s[y] {
-			s[y][x] = false
+	for y := range s.buffer {
+		for x := range s.buffer[y] {
+			s.buffer[y][x] = false
 		}
 	}
 }
 
 func (s *Screen) Draw(image *ebiten.Image) {
 	// TODO: write pixels only if there are changes
-	for i := range s {
-		for j := range s[i] {
-			image.Set(j, i, pixelColor(s[i][j]))
+	for i := range s.buffer {
+		for j := range s.buffer[i] {
+			image.Set(j, i, pixelColor(s.buffer[i][j]))
 		}
 	}
+}
+
+func (s *Screen) Get(x, y int) bool {
+	return s.buffer[y][x]
+}
+
+func (s *Screen) Set(x, y int, v bool) {
+	s.buffer[y][x] = v
 }
 
 func pixelColor(pixelOn bool) color.Color {

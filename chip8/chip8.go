@@ -17,6 +17,7 @@ const (
 
 type Chip8 struct {
 	log        *slog.Logger
+	clockHz    uint
 	memory     Memory
 	index      uint16
 	registers  Registers
@@ -24,13 +25,14 @@ type Chip8 struct {
 	fetcher    *Fetcher
 	delayTimer *Timer
 	input      *Input
-	screen     Screen
+	screen     *Screen
 	sound      *Sound
 }
 
 func NewChip8(tps uint, log *slog.Logger) *Chip8 {
 	return &Chip8{
 		log:        log,
+		clockHz:    tps,
 		memory:     Memory{},
 		index:      0,
 		registers:  Registers{},
@@ -38,7 +40,7 @@ func NewChip8(tps uint, log *slog.Logger) *Chip8 {
 		fetcher:    NewFetcher(programStartMemoryAddress),
 		delayTimer: NewTimer(tps),
 		input:      NewInput(),
-		screen:     Screen{},
+		screen:     NewScreen(),
 		sound:      NewSound(NewTimer(tps)),
 	}
 }
@@ -57,6 +59,14 @@ func (c *Chip8) LoadROM(r io.Reader) error {
 	c.log.Info("ROM loaded", slog.Int("bytes", n))
 	//println(c.memory.String())
 	return nil
+}
+
+func (c *Chip8) Run() error {
+	ebiten.SetWindowSize(screenWidth*screenMultiplier, screenHeight*screenMultiplier)
+	ebiten.SetWindowTitle("CHIP-8")
+	ebiten.SetTPS(int(c.clockHz))
+
+	return ebiten.RunGame(c)
 }
 
 func (c *Chip8) Update() error {

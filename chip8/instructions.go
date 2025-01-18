@@ -474,14 +474,14 @@ func (i drawSprite) Execute(c *Chip8) {
 				continue
 			}
 
-			screenPixelIsSet := c.screen[pixelY][pixelX]
+			screenPixelIsSet := c.screen.Get(pixelX, pixelY)
 			spritePixelIsSet := (b>>(bytePixels-1-j))&1 == 1
 			if screenPixelIsSet && spritePixelIsSet {
 				vf = uint8(1) // collision detected
 			}
 
 			// draw using XOR, boolean != should be equivalent
-			c.screen[pixelY][pixelX] = screenPixelIsSet != spritePixelIsSet
+			c.screen.Set(pixelX, pixelY, screenPixelIsSet != spritePixelIsSet)
 		}
 	}
 
