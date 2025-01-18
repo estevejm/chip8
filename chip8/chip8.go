@@ -141,21 +141,12 @@ func (c *Chip8) LoadROM(r io.Reader) error {
 
 func (c *Chip8) Update() error {
 	wait := c.input.Detect()
-	c.log.Info("input:", slog.String("V", c.input.String()))
+	c.log.Info("input  :", slog.String("V", c.input.String()))
 
 	if !wait {
-		opcode := c.fetch()
-		c.log.Info("fetch:", slog.String("PC", hexdump16(c.programCounter)), slog.String("opcode", hexdump16(opcode)))
-
-		c.incrementProgramCounter()
-
-		instruction, ok := c.decode(opcode)
-		if !ok {
-			return fmt.Errorf("invalid opcode: %s", hexdump16(opcode))
+		if err := c.Cycle(); err != nil {
+			return err
 		}
-		c.log.Info("decode: " + instruction.String())
-
-		instruction.Execute(c)
 	}
 
 	c.delayTimer.Update()
@@ -165,6 +156,7 @@ func (c *Chip8) Update() error {
 
 	c.log.Info(
 		"execute:",
+		slog.Int("TPS", int(math.Round(ebiten.ActualTPS()))),
 		slog.String("PC", hexdump16(c.programCounter)),
 		slog.String("I", hexdump16(c.index)),
 		slog.Any("V", c.registers),
@@ -172,8 +164,24 @@ func (c *Chip8) Update() error {
 		slog.Any("S", c.stack),
 		slog.Any("DT", c.delayTimer),
 		slog.Any("ST", c.soundTimer),
-		slog.Int("Hz", int(math.Round(ebiten.ActualTPS()))),
 	)
+
+	return nil
+}
+
+func (c *Chip8) Cycle() error {
+	opcode := c.fetch()
+	c.log.Info("fetch  :", slog.String("PC", hexdump16(c.programCounter)), slog.String("opcode", hexdump16(opcode)))
+
+	c.incrementProgramCounter()
+
+	instruction, ok := c.decode(opcode)
+	if !ok {
+		return fmt.Errorf("invalid opcode: %s", hexdump16(opcode))
+	}
+	c.log.Info("decode : " + instruction.String())
+
+	instruction.Execute(c)
 
 	return nil
 }
@@ -202,6 +210,8 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 }
 
 func (c *Chip8) Draw(image *ebiten.Image) {
+	c.log.Info("draw   :", slog.Int("FPS", int(math.Round(ebiten.ActualFPS()))))
+
 	c.screen.Draw(image)
 }
 
