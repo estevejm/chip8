@@ -10,6 +10,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+const (
+	fontStartMemoryAddress    = 0x050
+	programStartMemoryAddress = 0x200
+)
+
 type Chip8 struct {
 	log          *slog.Logger
 	memory       Memory
@@ -32,7 +37,7 @@ func NewChip8(tps uint, log *slog.Logger) *Chip8 {
 		registers:    Registers{},
 		stack:        Stack{},
 		stackPointer: 0,
-		fetcher:      NewFetcher(),
+		fetcher:      NewFetcher(programStartMemoryAddress),
 		delayTimer:   NewTimer(tps),
 		input:        NewInput(),
 		screen:       Screen{},

@@ -1,19 +1,15 @@
 package chip8
 
-const (
-	programStartMemoryAddress = 0x200
-	instructionBytes          = 2
-)
+const instructionBytes = 2
 
 type Fetcher struct {
 	counter uint16
 }
 
-func NewFetcher() *Fetcher {
+func NewFetcher(counter uint16) *Fetcher {
 	return &Fetcher{
-		counter: programStartMemoryAddress,
+		counter: counter,
 	}
-
 }
 
 func (f *Fetcher) Fetch(c *Chip8) uint16 {

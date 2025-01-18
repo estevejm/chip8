@@ -1,9 +1,8 @@
 package chip8
 
 const (
-	fontStartMemoryAddress = 0x050
-	fontCount              = 16
-	fontLen                = fontCount * 5
+	fontCount = 16
+	fontLen   = fontCount * 5
 )
 
 var font = [fontLen]byte{
