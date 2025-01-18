@@ -1,86 +1,99 @@
 package chip8
 
-func decode(opcode uint16) (Instruction, bool) {
-	switch opcode & 0xF000 {
+func decode(encoded uint16) (Instruction, bool) {
+	op := encoded & 0xF000
+
+	// 0x0X00
+	x := uint8(encoded>>8) & 0xF
+	// 0x00Y0
+	y := uint8(encoded>>4) & 0xF
+	// 0x00NN
+	n := uint8(encoded & 0xF)
+	// 0x00NN
+	nn := uint8(encoded & 0xFF)
+	// 0x0NNN
+	nnn := encoded & 0xFFF
+
+	switch op {
 	case 0x0000:
-		switch opcode & 0xFF {
+		switch nn {
 		case 0xE0:
 			return ClearScreen(), true
 		case 0xEE:
 			return Return(), true
 		}
 	case 0x1000:
-		return Jump(opcode), true
+		return Jump(nnn), true
 	case 0x2000:
-		return Call(opcode), true
+		return Call(nnn), true
 	case 0x3000:
-		return SkipEqual(opcode), true
+		return SkipEqual(x, nn), true
 	case 0x4000:
-		return SkipNotEqual(opcode), true
+		return SkipNotEqual(x, nn), true
 	case 0x5000:
-		return SkipEqualRegister(opcode), true
+		return SkipEqualRegister(x, y), true
 	case 0x6000:
-		return Load(opcode), true
+		return Load(x, nn), true
 	case 0x7000:
-		return Add(opcode), true
+		return Add(x, nn), true
 	case 0x8000:
-		switch opcode & 0xF {
+		switch n {
 		case 0x0:
-			return LoadRegister(opcode), true
+			return LoadRegister(x, y), true
 		case 0x1:
-			return Or(opcode), true
+			return Or(x, y), true
 		case 0x2:
-			return And(opcode), true
+			return And(x, y), true
 		case 0x3:
-			return Xor(opcode), true
+			return Xor(x, y), true
 		case 0x4:
-			return AddRegister(opcode), true
+			return AddRegister(x, y), true
 		case 0x5:
-			return SubRegister(opcode), true
+			return SubRegister(x, y), true
 		case 0x6:
-			return ShiftRight(opcode), true
+			return ShiftRight(x, y), true
 		case 0x7:
-			return ReverseSubRegister(opcode), true
+			return ReverseSubRegister(x, y), true
 		case 0xE:
-			return ShiftLeft(opcode), true
+			return ShiftLeft(x, y), true
 		}
 	case 0x9000:
-		return SkipNotEqualRegister(opcode), true
+		return SkipNotEqualRegister(x, y), true
 	case 0xA000:
-		return LoadIndex(opcode), true
+		return LoadIndex(nnn), true
 	case 0xB000:
-		return JumpRegister0(opcode), true
+		return JumpRegister0(nnn), true
 	case 0xC000:
-		return Random(opcode), true
+		return Random(x, nn), true
 	case 0xD000:
-		return DrawSprite(opcode), true
+		return DrawSprite(x, y, n), true
 	case 0xE000:
-		switch opcode & 0xFF {
+		switch nn {
 		case 0x9E:
-			return SkipPressed(opcode), true
+			return SkipPressed(x), true
 		case 0xA1:
-			return SkipNotPressed(opcode), true
+			return SkipNotPressed(x), true
 		}
 	case 0xF000:
-		switch opcode & 0xFF {
+		switch nn {
 		case 0x07:
-			return LoadRegisterDelayTimer(opcode), true
+			return LoadRegisterDelayTimer(x), true
 		case 0x0A:
-			return WaitKey(opcode), true
+			return WaitKey(x), true
 		case 0x15:
-			return LoadDelayTimerRegister(opcode), true
+			return LoadDelayTimerRegister(x), true
 		case 0x18:
-			return LoadSoundTimerRegister(opcode), true
+			return LoadSoundTimerRegister(x), true
 		case 0x1E:
-			return AddIndex(opcode), true
+			return AddIndex(x), true
 		case 0x29:
-			return LoadDigitIndex(opcode), true
+			return LoadDigitIndex(x), true
 		case 0x33:
-			return BCD(opcode), true
+			return BCD(x), true
 		case 0x55:
-			return Write(opcode), true
+			return Write(x), true
 		case 0x65:
-			return Read(opcode), true
+			return Read(x), true
 		}
 	}
 

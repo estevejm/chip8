@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	fontStartMemoryAddress    = 0x050
+	fontStartMemoryAddress    = 0x50
 	programStartMemoryAddress = 0x200
 )
 

@@ -58,97 +58,86 @@ func (i returnFromSubroutine) Execute(c *Chip8) {
 }
 
 // Jump 1NNN: Jump to address NNN
-func Jump(opcode uint16) Instruction {
-	return &jump{
-		n: opcode & 0xFFF,
-	}
+func Jump(nnn uint16) Instruction {
+	return &jump{nnn: nnn}
 }
 
 type jump struct {
-	n uint16
+	nnn uint16
 }
 
 func (i jump) String() string {
-	return fmt.Sprintf("JUMP 0x%04x", i.n)
+	return fmt.Sprintf("JUMP 0x%04x", i.nnn)
 }
 
 func (i jump) Execute(c *Chip8) {
-	c.fetcher.SetCounter(i.n)
+	c.fetcher.SetCounter(i.nnn)
 }
 
 // Call 2NNN: Execute subroutine starting at address NNN
-func Call(opcode uint16) Instruction {
+func Call(nnn uint16) Instruction {
 	return &call{
-		n: opcode & 0xFFF,
+		nnn: nnn & 0xFFF,
 	}
 }
 
 type call struct {
-	n uint16
+	nnn uint16
 }
 
 func (i call) String() string {
-	return fmt.Sprintf("CALL 0x%04x", i.n)
+	return fmt.Sprintf("CALL 0x%04x", i.nnn)
 }
 
 func (i call) Execute(c *Chip8) {
 	// TODO: check stack overflow
 	c.stack[c.stackPointer] = c.fetcher.GetCounter()
 	c.stackPointer++
-	c.fetcher.SetCounter(i.n)
+	c.fetcher.SetCounter(i.nnn)
 }
 
 // SkipEqual 3XNN: Skip the following instruction if the value of register VX equals NN
-func SkipEqual(opcode uint16) Instruction {
-	return &skipEqual{
-		x: uint8(opcode>>8) & 0xF,
-		n: uint8(opcode & 0xFF),
-	}
+func SkipEqual(x, nn uint8) Instruction {
+	return &skipEqual{x: x, nn: nn}
 }
 
 type skipEqual struct {
-	x, n uint8
+	x, nn uint8
 }
 
 func (i skipEqual) String() string {
-	return fmt.Sprintf("SKE V%x,%x", i.x, i.n)
+	return fmt.Sprintf("SKE V%x,%x", i.x, i.nn)
 }
 
 func (i skipEqual) Execute(c *Chip8) {
-	if c.registers[i.x] == i.n {
+	if c.registers[i.x] == i.nn {
 		c.fetcher.Skip()
 	}
 }
 
 // SkipNotEqual 4XNN: Skip the following instruction if the value of register VX is not equal to NN
-func SkipNotEqual(opcode uint16) Instruction {
-	return &skipNotEqual{
-		x: uint8(opcode>>8) & 0xF,
-		n: uint8(opcode & 0xFF),
-	}
+func SkipNotEqual(x, nn uint8) Instruction {
+	return &skipNotEqual{x: x, nn: nn}
 }
 
 type skipNotEqual struct {
-	x, n uint8
+	x, nn uint8
 }
 
 func (i skipNotEqual) String() string {
-	return fmt.Sprintf("SKNE V%x,%x", i.x, i.n)
+	return fmt.Sprintf("SKNE V%x,%x", i.x, i.nn)
 }
 
 func (i skipNotEqual) Execute(c *Chip8) {
-	if c.registers[i.x] != i.n {
+	if c.registers[i.x] != i.nn {
 		c.fetcher.Skip()
 	}
 }
 
 // SkipEqualRegister 5XY0: Skip the following instruction
 // if the value of register VX is equal to the value of register VY
-func SkipEqualRegister(opcode uint16) Instruction {
-	return &skipEqualRegister{
-		x: uint8(opcode>>8) & 0xF,
-		y: uint8(opcode>>4) & 0xF,
-	}
+func SkipEqualRegister(x, y uint8) Instruction {
+	return &skipEqualRegister{x: x, y: y}
 }
 
 type skipEqualRegister struct {
@@ -166,51 +155,42 @@ func (i skipEqualRegister) Execute(c *Chip8) {
 }
 
 // Load 6XNN: Store number NN in register VX
-func Load(opcode uint16) Instruction {
-	return &load{
-		x: uint8(opcode>>8) & 0xF,
-		n: uint8(opcode & 0xFF),
-	}
+func Load(x, nn uint8) Instruction {
+	return &load{x: x, nn: nn}
 }
 
 type load struct {
-	x, n uint8
+	x, nn uint8
 }
 
 func (i load) String() string {
-	return fmt.Sprintf("LOAD V%x,%x", i.x, i.n)
+	return fmt.Sprintf("LOAD V%x,%x", i.x, i.nn)
 }
 
 func (i load) Execute(c *Chip8) {
-	c.registers[i.x] = i.n
+	c.registers[i.x] = i.nn
 }
 
 // Add 7XNN: Add the value NN to register VX
-func Add(opcode uint16) Instruction {
-	return &add{
-		x: uint8(opcode>>8) & 0xF,
-		n: uint8(opcode & 0xFF),
-	}
+func Add(x, nn uint8) Instruction {
+	return &add{x: x, nn: nn}
 }
 
 type add struct {
-	x, n uint8
+	x, nn uint8
 }
 
 func (i add) String() string {
-	return fmt.Sprintf("ADD V%x,%x", i.x, i.n)
+	return fmt.Sprintf("ADD V%x,%x", i.x, i.nn)
 }
 
 func (i add) Execute(c *Chip8) {
-	c.registers[i.x] += i.n
+	c.registers[i.x] += i.nn
 }
 
 // LoadRegister 8XY0: Store the value of register VY in register VX
-func LoadRegister(opcode uint16) Instruction {
-	return &loadRegister{
-		x: uint8(opcode>>8) & 0xF,
-		y: uint8(opcode>>4) & 0xF,
-	}
+func LoadRegister(x, y uint8) Instruction {
+	return &loadRegister{x: x, y: y}
 }
 
 type loadRegister struct {
@@ -226,11 +206,8 @@ func (i loadRegister) Execute(c *Chip8) {
 }
 
 // Or 8XY1: Set VX to VX OR VY
-func Or(opcode uint16) Instruction {
-	return &or{
-		x: uint8(opcode>>8) & 0xF,
-		y: uint8(opcode>>4) & 0xF,
-	}
+func Or(x, y uint8) Instruction {
+	return &or{x: x, y: y}
 }
 
 type or struct {
@@ -246,11 +223,8 @@ func (i or) Execute(c *Chip8) {
 }
 
 // And 8XY2: Set VX to VX AND VY
-func And(opcode uint16) Instruction {
-	return &and{
-		x: uint8(opcode>>8) & 0xF,
-		y: uint8(opcode>>4) & 0xF,
-	}
+func And(x, y uint8) Instruction {
+	return &and{x: x, y: y}
 }
 
 type and struct {
@@ -266,11 +240,8 @@ func (i and) Execute(c *Chip8) {
 }
 
 // Xor 8XY3: Set VX to VX XOR VY
-func Xor(opcode uint16) Instruction {
-	return &xor{
-		x: uint8(opcode>>8) & 0xF,
-		y: uint8(opcode>>4) & 0xF,
-	}
+func Xor(x, y uint8) Instruction {
+	return &xor{x: x, y: y}
 }
 
 type xor struct {
@@ -288,11 +259,8 @@ func (i xor) Execute(c *Chip8) {
 // AddRegister 8XY4: Add the value of register VY to register VX
 // Set VF to 01 if a carry occurs
 // Set VF to 00 if a carry does not occur
-func AddRegister(opcode uint16) Instruction {
-	return &addRegister{
-		x: uint8(opcode>>8) & 0xF,
-		y: uint8(opcode>>4) & 0xF,
-	}
+func AddRegister(x, y uint8) Instruction {
+	return &addRegister{x: x, y: y}
 }
 
 type addRegister struct {
@@ -315,11 +283,8 @@ func (i addRegister) Execute(c *Chip8) {
 // SubRegister 8XY5: Subtract the value of register VY from register VX
 // Set VF to 00 if a borrow occurs
 // Set VF to 01 if a borrow does not occur
-func SubRegister(opcode uint16) Instruction {
-	return &subRegister{
-		x: uint8(opcode>>8) & 0xF,
-		y: uint8(opcode>>4) & 0xF,
-	}
+func SubRegister(x, y uint8) Instruction {
+	return &subRegister{x: x, y: y}
 }
 
 type subRegister struct {
@@ -343,11 +308,8 @@ func (i subRegister) Execute(c *Chip8) {
 // ShiftRight 8XY6: Store the value of register VY shifted right one bit in register VX
 // Set register VF to the least significant bit prior to the shift
 // VY is unchanged
-func ShiftRight(opcode uint16) Instruction {
-	return &shiftRight{
-		x: uint8(opcode>>8) & 0xF,
-		y: uint8(opcode>>4) & 0xF,
-	}
+func ShiftRight(x, y uint8) Instruction {
+	return &shiftRight{x: x, y: y}
 }
 
 type shiftRight struct {
@@ -367,11 +329,8 @@ func (i shiftRight) Execute(c *Chip8) {
 // ReverseSubRegister 8XY7: Set register VX to the value of VY minus VX
 // Set VF to 00 if a borrow occurs
 // Set VF to 01 if a borrow does not occur
-func ReverseSubRegister(opcode uint16) Instruction {
-	return &reverseSubRegister{
-		x: uint8(opcode>>8) & 0xF,
-		y: uint8(opcode>>4) & 0xF,
-	}
+func ReverseSubRegister(x, y uint8) Instruction {
+	return &reverseSubRegister{x: x, y: y}
 }
 
 type reverseSubRegister struct {
@@ -395,11 +354,8 @@ func (i reverseSubRegister) Execute(c *Chip8) {
 // ShiftLeft 8XYE: Store the value of register VY shifted left one bit in register VX
 // Set register VF to the most significant bit prior to the shift
 // VY is unchanged
-func ShiftLeft(opcode uint16) Instruction {
-	return &shiftLeft{
-		x: uint8(opcode>>8) & 0xF,
-		y: uint8(opcode>>4) & 0xF,
-	}
+func ShiftLeft(x, y uint8) Instruction {
+	return &shiftLeft{x: x, y: y}
 }
 
 type shiftLeft struct {
@@ -418,11 +374,8 @@ func (i shiftLeft) Execute(c *Chip8) {
 
 // SkipNotEqualRegister 9XY0: Skip the following instruction
 // if the value of register VX is not equal to the value of register VY
-func SkipNotEqualRegister(opcode uint16) Instruction {
-	return &skipNotEqualRegister{
-		x: uint8(opcode>>8) & 0xF,
-		y: uint8(opcode>>4) & 0xF,
-	}
+func SkipNotEqualRegister(x, y uint8) Instruction {
+	return &skipNotEqualRegister{x: x, y: y}
 }
 
 type skipNotEqualRegister struct {
@@ -440,73 +393,62 @@ func (i skipNotEqualRegister) Execute(c *Chip8) {
 }
 
 // LoadIndex ANNN: Store memory address NNN in register I
-func LoadIndex(opcode uint16) Instruction {
-	return &loadIndex{
-		n: opcode & 0xFFF,
-	}
+func LoadIndex(nnn uint16) Instruction {
+	return &loadIndex{nnn: nnn}
 }
 
 type loadIndex struct {
-	n uint16
+	nnn uint16
 }
 
 func (i loadIndex) String() string {
-	return fmt.Sprintf("LOAD I,0x%04x", i.n)
+	return fmt.Sprintf("LOAD I,0x%04x", i.nnn)
 }
 
 func (i loadIndex) Execute(c *Chip8) {
-	c.index = i.n
+	c.index = i.nnn
 }
 
 // JumpRegister0 BNNN: Jump to address NNN + V0
-func JumpRegister0(opcode uint16) Instruction {
-	return &jumpRegister0{
-		n: opcode & 0xFFF,
-	}
+func JumpRegister0(nnn uint16) Instruction {
+	return &jumpRegister0{nnn: nnn}
 }
 
 type jumpRegister0 struct {
-	n uint16
+	nnn uint16
 }
 
 func (i jumpRegister0) String() string {
-	return fmt.Sprintf("JUMP 0x%04x+V0", i.n)
+	return fmt.Sprintf("JUMP 0x%04x+V0", i.nnn)
 }
 
 func (i jumpRegister0) Execute(c *Chip8) {
-	c.fetcher.SetCounter(i.n + uint16(c.registers[0]))
+	c.fetcher.SetCounter(i.nnn + uint16(c.registers[0]))
 }
 
 // Random CXNN: Set VX to a random number with a mask of NN
-func Random(opcode uint16) Instruction {
-	return &random{
-		x: uint8(opcode>>8) & 0xF,
-		n: uint8(opcode & 0xFF),
-	}
+func Random(x, nn uint8) Instruction {
+	return &random{x: x, nn: nn}
 }
 
 type random struct {
-	x, n uint8
+	x, nn uint8
 }
 
 func (i random) String() string {
-	return fmt.Sprintf("RAND V%x,0x%04x", i.x, i.n)
+	return fmt.Sprintf("RAND V%x,0x%04x", i.x, i.nn)
 }
 
 func (i random) Execute(c *Chip8) {
 	b := make([]byte, 1)
 	rand.Read(b)
-	c.registers[i.x] = b[0] & i.n
+	c.registers[i.x] = b[0] & i.nn
 }
 
 // DrawSprite DXYN: Draw a sprite at position VX, VY with N bytes of sprite data starting at the address stored in I
 // Set VF to 01 if any set pixels are changed to unset, and 00 otherwise
-func DrawSprite(opcode uint16) Instruction {
-	return &drawSprite{
-		x: uint8(opcode>>8) & 0xF,
-		y: uint8(opcode>>4) & 0xF,
-		n: uint8(opcode & 0xF),
-	}
+func DrawSprite(x, y, n uint8) Instruction {
+	return &drawSprite{x: x, y: y, n: n}
 }
 
 type drawSprite struct {
@@ -552,10 +494,8 @@ func (i drawSprite) Execute(c *Chip8) {
 
 // SkipPressed EX9E: Skip the following instruction if the key corresponding to the hex value
 // currently stored in register VX is pressed
-func SkipPressed(opcode uint16) Instruction {
-	return &skipPressed{
-		x: uint8(opcode>>8) & 0xF,
-	}
+func SkipPressed(x uint8) Instruction {
+	return &skipPressed{x: x}
 }
 
 type skipPressed struct {
@@ -575,10 +515,8 @@ func (i skipPressed) Execute(c *Chip8) {
 
 // SkipNotPressed EXA1: Skip the following instruction if the key corresponding to the hex value
 // currently stored in register VX is not pressed
-func SkipNotPressed(opcode uint16) Instruction {
-	return &skipNotPressed{
-		x: uint8(opcode>>8) & 0xF,
-	}
+func SkipNotPressed(x uint8) Instruction {
+	return &skipNotPressed{x: x}
 }
 
 type skipNotPressed struct {
@@ -597,10 +535,8 @@ func (i skipNotPressed) Execute(c *Chip8) {
 }
 
 // LoadRegisterDelayTimer FX07: Store the current value of the delay timer in register VX
-func LoadRegisterDelayTimer(opcode uint16) Instruction {
-	return &loadRegisterDelayTimer{
-		x: uint8(opcode>>8) & 0xF,
-	}
+func LoadRegisterDelayTimer(x uint8) Instruction {
+	return &loadRegisterDelayTimer{x: x}
 }
 
 type loadRegisterDelayTimer struct {
@@ -616,10 +552,8 @@ func (i loadRegisterDelayTimer) Execute(c *Chip8) {
 }
 
 // WaitKey FX0A: Wait for a keypress and store the result in register VX
-func WaitKey(opcode uint16) Instruction {
-	return &waitKey{
-		x: uint8(opcode>>8) & 0xF,
-	}
+func WaitKey(x uint8) Instruction {
+	return &waitKey{x: x}
 }
 
 type waitKey struct {
@@ -637,10 +571,8 @@ func (i waitKey) Execute(c *Chip8) {
 }
 
 // LoadDelayTimerRegister FX15: Set the delay timer to the value of register VX
-func LoadDelayTimerRegister(opcode uint16) Instruction {
-	return &loadDelayTimerRegister{
-		x: uint8(opcode>>8) & 0xF,
-	}
+func LoadDelayTimerRegister(x uint8) Instruction {
+	return &loadDelayTimerRegister{x: x}
 }
 
 type loadDelayTimerRegister struct {
@@ -656,10 +588,8 @@ func (i loadDelayTimerRegister) Execute(c *Chip8) {
 }
 
 // LoadSoundTimerRegister FX15: Set the delay timer to the value of register VX
-func LoadSoundTimerRegister(opcode uint16) Instruction {
-	return &loadSoundTimerRegister{
-		x: uint8(opcode>>8) & 0xF,
-	}
+func LoadSoundTimerRegister(x uint8) Instruction {
+	return &loadSoundTimerRegister{x: x}
 }
 
 type loadSoundTimerRegister struct {
@@ -675,10 +605,8 @@ func (i loadSoundTimerRegister) Execute(c *Chip8) {
 }
 
 // AddIndex FX1E: Add the value stored in register VX to register I
-func AddIndex(opcode uint16) Instruction {
-	return &addIndex{
-		x: uint8(opcode>>8) & 0xF,
-	}
+func AddIndex(x uint8) Instruction {
+	return &addIndex{x: x}
 }
 
 type addIndex struct {
@@ -695,10 +623,8 @@ func (i addIndex) Execute(c *Chip8) {
 
 // LoadDigitIndex FX29: Set I to the memory address of the sprite data
 // corresponding to the hexadecimal digit stored in register VX
-func LoadDigitIndex(opcode uint16) Instruction {
-	return &loadDigitIndex{
-		x: uint8(opcode>>8) & 0xF,
-	}
+func LoadDigitIndex(x uint8) Instruction {
+	return &loadDigitIndex{x: x}
 }
 
 type loadDigitIndex struct {
@@ -715,10 +641,8 @@ func (i loadDigitIndex) Execute(c *Chip8) {
 
 // BCD FX33: Store the binary-coded decimal equivalent of the value stored in register VX
 // at addresses I, I+1, and I + 2
-func BCD(opcode uint16) Instruction {
-	return &bcd{
-		x: uint8(opcode>>8) & 0xF,
-	}
+func BCD(x uint8) Instruction {
+	return &bcd{x: x}
 }
 
 type bcd struct {
@@ -738,14 +662,12 @@ func (i bcd) Execute(c *Chip8) {
 
 // Write FX55: Store the values of registers V0 to VX inclusive in memory starting at address I
 // I is set to I + X + 1 after operation
-func Write(opcode uint16) Instruction {
-	return &write{
-		x: (opcode & 0x0F00) >> 8,
-	}
+func Write(x uint8) Instruction {
+	return &write{x: x}
 }
 
 type write struct {
-	x uint16
+	x uint8
 }
 
 func (i write) String() string {
@@ -753,21 +675,19 @@ func (i write) String() string {
 }
 
 func (i write) Execute(c *Chip8) {
-	high := i.x + 1
+	high := uint16(i.x + 1)
 	copy(c.memory[c.index:c.index+high], c.registers[:high])
 	c.index += high
 }
 
 // Read FX65: Fill registers V0 to VX inclusive with the values stored in memory starting at address I
 // I is set to I + X + 1 after operation
-func Read(opcode uint16) Instruction {
-	return &read{
-		x: (opcode & 0x0F00) >> 8,
-	}
+func Read(x uint8) Instruction {
+	return &read{x: x}
 }
 
 type read struct {
-	x uint16
+	x uint8
 }
 
 func (i read) String() string {
@@ -775,7 +695,7 @@ func (i read) String() string {
 }
 
 func (i read) Execute(c *Chip8) {
-	high := i.x + 1
+	high := uint16(i.x + 1)
 	copy(c.registers[:high], c.memory[c.index:c.index+high])
 	c.index += high
 }

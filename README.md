@@ -1,6 +1,6 @@
 # CHIP-8 Emulator
 
-My first emudev project
+My first emudev project, using Go and Ebitengine
 
 ## Usage
 Instructions are documented in output of `go run main.go -h`
@@ -19,3 +19,6 @@ Instructions are documented in output of `go run main.go -h`
 * https://chip8.gulrak.net/
 * https://ebitengine.org/
 * https://nachtimwald.com/2024/03/12/chip8-dev-challenge-sound/
+* https://github.com/kripod/chip8-roms
+* https://www.reddit.com/r/EmuDev/comments/n9dcli/is_chip_8_emulator_flicker_normal/
+* https://callistaenterprise.se/blogg/teknik/2023/01/01/chip8-with-rust-and-go/
