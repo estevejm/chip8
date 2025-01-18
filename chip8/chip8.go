@@ -70,7 +70,6 @@ func (c *Chip8) Run() error {
 }
 
 func (c *Chip8) Update() error {
-	// TODO: wait using channel + select?
 	wait := c.input.Detect()
 	c.log.Info("input  :", slog.Any("keys", c.input))
 

@@ -37,6 +37,7 @@ func (s *Screen) Clear() {
 }
 
 func (s *Screen) Get(x, y int) bool {
+	// TODO: reduce calls https://ebitengine.org/en/documents/performancetips.html#Don't_call_(*Image).At_too_much
 	return pixelOn(s.buffer.At(x, y))
 }
 
@@ -45,6 +46,7 @@ func (s *Screen) Set(x, y int, on bool) {
 }
 
 func (s *Screen) Draw(image *ebiten.Image) {
+	// TODO: Use BlendXor, if we still can detect collisions https://ebitengine.org/en/examples/blend.html
 	image.DrawImage(s.buffer, nil)
 }
 
