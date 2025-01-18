@@ -1,6 +1,7 @@
 package chip8
 
 import (
+	"crypto/rand"
 	"fmt"
 )
 
@@ -478,6 +479,28 @@ func (i jumpRegister0) String() string {
 
 func (i jumpRegister0) Execute(c *Chip8) {
 	c.programCounter = i.n + uint16(c.registers[0])
+}
+
+// Random CXNN: Set VX to a random number with a mask of NN
+func Random(opcode uint16) Instruction {
+	return &random{
+		x: uint8(opcode>>8) & 0xF,
+		n: uint8(opcode & 0xFF),
+	}
+}
+
+type random struct {
+	x, n uint8
+}
+
+func (i random) String() string {
+	return fmt.Sprintf("RAND V%x,0x%04x", i.x, i.n)
+}
+
+func (i random) Execute(c *Chip8) {
+	b := make([]byte, 1)
+	rand.Read(b)
+	c.registers[i.x] = b[0] & i.n
 }
 
 // DrawSprite DXYN: Draw a sprite at position VX, VY with N bytes of sprite data starting at the address stored in I
