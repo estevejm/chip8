@@ -6,78 +6,11 @@ import (
 	"io"
 	"log/slog"
 	"math"
-	"os"
-	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-const (
-	memoryLocations  = 0x1000
-	programStart     = 0x200
-	instructionBytes = 2
-	registerCount    = 16
-	flagRegister     = 0xF
-	stackLevels      = 16
-	timerRateHz      = 60
-)
-
-func hexdump8(b uint8) string {
-	return fmt.Sprintf("%02x", b)
-}
-func hexdump16(b uint16) string {
-	return fmt.Sprintf("%04x", b)
-}
-
-type Memory [memoryLocations]uint8
-
-func (m *Memory) Write(start uint16, bytes []byte) {
-	// TODO: ensure data copied in bounds -> check data len
-	copy(m[start:], bytes)
-}
-
-func (m *Memory) String() string {
-	const bytesPerRow = 16
-	var sb strings.Builder
-
-	for i, b := range m {
-		if i%bytesPerRow == 0 {
-			if i > 0 {
-				sb.WriteString("\n")
-			}
-			sb.WriteString(hexdump16(uint16(i)))
-			sb.WriteString(" ")
-		}
-		sb.WriteString(" ")
-		sb.WriteString(hexdump8(b))
-	}
-
-	return sb.String()
-}
-
-type Registers [registerCount]uint8
-
-func (r Registers) String() string {
-	var sb strings.Builder
-
-	for i, b := range r {
-		sb.WriteString(fmt.Sprintf("%x:%s ", i, hexdump8(b)))
-	}
-
-	return strings.TrimSpace(sb.String())
-}
-
-type Stack [stackLevels]uint16
-
-func (s Stack) String() string {
-	var sb strings.Builder
-
-	for i, b := range s {
-		sb.WriteString(fmt.Sprintf("%x:%s ", i, hexdump16(b)))
-	}
-
-	return strings.TrimSpace(sb.String())
-}
+const instructionBytes = 2
 
 type Chip8 struct {
 	log            *slog.Logger
@@ -94,45 +27,33 @@ type Chip8 struct {
 }
 
 func NewChip8(tps uint, log *slog.Logger) *Chip8 {
-	memory := Memory{}
-	memory.Write(fontStartMemoryAddress, font[:])
-
 	return &Chip8{
 		log:            log,
-		memory:         memory,
+		memory:         Memory{},
 		registers:      Registers{},
 		stack:          Stack{},
 		stackPointer:   0,
-		programCounter: programStart,
+		programCounter: programStartMemoryAddress,
 		index:          0,
-		delayTimer:     NewTimer(tps, timerRateHz),
+		delayTimer:     NewTimer(tps),
 		input:          NewInput(),
 		screen:         Screen{},
-		sound:          NewSound(NewTimer(tps, timerRateHz)),
+		sound:          NewSound(NewTimer(tps)),
 	}
 }
 
-func (c *Chip8) LoadROMFromBytes(b []byte) error {
-	return c.LoadROM(bytes.NewReader(b))
-}
-
-func (c *Chip8) LoadROMFromPath(name string) error {
-	f, err := os.Open(name)
-	if err != nil {
-		return err
-	}
-
-	return c.LoadROM(f)
+func (c *Chip8) LoadFont() error {
+	_, err := c.memory.Write(fontStartMemoryAddress, bytes.NewReader(font[:]))
+	return err
 }
 
 func (c *Chip8) LoadROM(r io.Reader) error {
-	data, err := io.ReadAll(r)
+	n, err := c.memory.Write(programStartMemoryAddress, r)
 	if err != nil {
 		return err
 	}
 
-	c.memory.Write(programStart, data)
-	c.log.Info("ROM loaded", slog.Int("bytes", len(data)))
+	c.log.Info("ROM loaded", slog.Int("bytes", n))
 	//println(c.memory.String())
 	return nil
 }
@@ -175,7 +96,7 @@ func (c *Chip8) Cycle() error {
 	if !ok {
 		return fmt.Errorf("invalid opcode: %s", hexdump16(opcode))
 	}
-	c.log.Info("decode : " + instruction.String())
+	c.log.Info("decode :" + instruction.String())
 
 	instruction.Execute(c)
 
@@ -183,8 +104,7 @@ func (c *Chip8) Cycle() error {
 }
 
 func (c *Chip8) fetch() uint16 {
-	// big-endian
-	return uint16(c.memory[c.programCounter])<<8 | uint16(c.memory[c.programCounter+1])
+	return c.memory.ReadWord(c.programCounter)
 }
 
 func (c *Chip8) incrementProgramCounter() {
@@ -198,11 +118,10 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 }
 
 func (c *Chip8) Draw(image *ebiten.Image) {
-	c.log.Info("draw   :", slog.Int("FPS", int(math.Round(ebiten.ActualFPS()))))
-
 	c.screen.Draw(image)
+	c.log.Info("draw   :", slog.Int("FPS", int(math.Round(ebiten.ActualFPS()))))
 }
 
-func (c *Chip8) Layout(outsideWidth, outsideHeight int) (w, h int) {
+func (c *Chip8) Layout(_, _ int) (w, h int) {
 	return c.screen.Layout()
 }

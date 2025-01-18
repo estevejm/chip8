@@ -33,7 +33,19 @@ func main() {
 	ebiten.SetTPS(tps)
 
 	emulator := chip8.NewChip8(uint(tps), log)
-	if err := emulator.LoadROMFromPath(rom); err != nil {
+
+	if err := emulator.LoadFont(); err != nil {
+		log.Error("Failed to load font")
+		os.Exit(1)
+	}
+
+	romReader, err := os.Open(rom)
+	if err != nil {
+		log.Error("Failed to open ROM file")
+		os.Exit(1)
+	}
+
+	if err := emulator.LoadROM(romReader); err != nil {
 		log.Error("Failed to load ROM file")
 		os.Exit(1)
 	}

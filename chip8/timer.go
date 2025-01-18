@@ -4,6 +4,8 @@ import (
 	"fmt"
 )
 
+const timerRateHz = 60
+
 type Timer struct {
 	rate      uint
 	tps       uint
@@ -13,8 +15,8 @@ type Timer struct {
 }
 
 // NewTimer create timer that counts down at a given hertz rate
-func NewTimer(tps uint, rate uint) *Timer {
-	timer := &Timer{rate: rate}
+func NewTimer(tps uint) *Timer {
+	timer := &Timer{rate: timerRateHz}
 	timer.SetTPS(tps)
 	return timer
 }
