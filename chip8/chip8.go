@@ -88,7 +88,6 @@ type Chip8 struct {
 	programCounter uint16
 	index          uint16
 	delayTimer     *Timer
-	soundTimer     *Timer
 	input          *Input
 	screen         Screen
 	sound          *Sound
@@ -107,10 +106,9 @@ func NewChip8(tps uint, log *slog.Logger) *Chip8 {
 		programCounter: programStart,
 		index:          0,
 		delayTimer:     NewTimer(tps, timerRateHz),
-		soundTimer:     NewTimer(tps, timerRateHz),
 		input:          NewInput(),
 		screen:         Screen{},
-		sound:          NewSound(),
+		sound:          NewSound(NewTimer(tps, timerRateHz)),
 	}
 }
 
@@ -150,9 +148,7 @@ func (c *Chip8) Update() error {
 	}
 
 	c.delayTimer.Update()
-	c.soundTimer.Update()
-
-	c.outputSound()
+	c.sound.Update()
 
 	c.log.Info(
 		"execute:",
@@ -163,7 +159,7 @@ func (c *Chip8) Update() error {
 		slog.Int("SP", int(c.stackPointer)),
 		slog.Any("S", c.stack),
 		slog.Any("DT", c.delayTimer),
-		slog.Any("ST", c.soundTimer),
+		slog.Any("ST", c.sound.timer),
 	)
 
 	return nil
@@ -184,14 +180,6 @@ func (c *Chip8) Cycle() error {
 	instruction.Execute(c)
 
 	return nil
-}
-
-func (c *Chip8) outputSound() {
-	if c.soundTimer.GetValue() == 0 {
-		c.sound.Pause()
-	} else {
-		c.sound.Play()
-	}
 }
 
 func (c *Chip8) fetch() uint16 {

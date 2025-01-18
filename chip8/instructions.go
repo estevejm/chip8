@@ -671,7 +671,7 @@ func (i loadSoundTimerRegister) String() string {
 }
 
 func (i loadSoundTimerRegister) Execute(c *Chip8) {
-	c.soundTimer.SetValue(c.registers[i.x])
+	c.sound.SetTimerValue(c.registers[i.x])
 }
 
 // AddIndex FX1E: Add the value stored in register VX to register I

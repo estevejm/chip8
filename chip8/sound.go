@@ -53,22 +53,31 @@ func (s *stream) Close() error {
 
 type Sound struct {
 	player *audio.Player
+	timer  *Timer
 }
 
-func NewSound() *Sound {
+func NewSound(timer *Timer) *Sound {
 	context := audio.NewContext(sampleRate)
 
 	player, _ := context.NewPlayerF32(&stream{})
 	player.SetVolume(0)
 	player.Play()
 
-	return &Sound{player: player}
+	return &Sound{
+		player: player,
+		timer:  timer,
+	}
 }
 
-func (s *Sound) Play() {
-	s.player.SetVolume(1)
+func (s *Sound) SetTimerValue(value uint8) {
+	s.timer.SetValue(value)
 }
 
-func (s *Sound) Pause() {
-	s.player.SetVolume(0)
+func (s *Sound) Update() {
+	s.timer.Update()
+	if s.timer.GetValue() == 0 {
+		s.player.SetVolume(0)
+	} else {
+		s.player.SetVolume(1)
+	}
 }
