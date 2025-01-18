@@ -54,7 +54,7 @@ func (i returnFromSubroutine) String() string {
 func (i returnFromSubroutine) Execute(c *Chip8) {
 	// TODO: check stack pointer won't be < 0
 	c.stackPointer--
-	c.programCounter = c.stack[c.stackPointer]
+	c.fetcher.SetCounter(c.stack[c.stackPointer])
 }
 
 // Jump 1NNN: Jump to address NNN
@@ -73,7 +73,7 @@ func (i jump) String() string {
 }
 
 func (i jump) Execute(c *Chip8) {
-	c.programCounter = i.n
+	c.fetcher.SetCounter(i.n)
 }
 
 // Call 2NNN: Execute subroutine starting at address NNN
@@ -93,9 +93,9 @@ func (i call) String() string {
 
 func (i call) Execute(c *Chip8) {
 	// TODO: check stack overflow
-	c.stack[c.stackPointer] = c.programCounter
+	c.stack[c.stackPointer] = c.fetcher.GetCounter()
 	c.stackPointer++
-	c.programCounter = i.n
+	c.fetcher.SetCounter(i.n)
 }
 
 // SkipEqual 3XNN: Skip the following instruction if the value of register VX equals NN
@@ -116,7 +116,7 @@ func (i skipEqual) String() string {
 
 func (i skipEqual) Execute(c *Chip8) {
 	if c.registers[i.x] == i.n {
-		c.incrementProgramCounter()
+		c.fetcher.Skip()
 	}
 }
 
@@ -138,7 +138,7 @@ func (i skipNotEqual) String() string {
 
 func (i skipNotEqual) Execute(c *Chip8) {
 	if c.registers[i.x] != i.n {
-		c.incrementProgramCounter()
+		c.fetcher.Skip()
 	}
 }
 
@@ -161,7 +161,7 @@ func (i skipEqualRegister) String() string {
 
 func (i skipEqualRegister) Execute(c *Chip8) {
 	if c.registers[i.x] == c.registers[i.y] {
-		c.incrementProgramCounter()
+		c.fetcher.Skip()
 	}
 }
 
@@ -435,7 +435,7 @@ func (i skipNotEqualRegister) String() string {
 
 func (i skipNotEqualRegister) Execute(c *Chip8) {
 	if c.registers[i.x] != c.registers[i.y] {
-		c.incrementProgramCounter()
+		c.fetcher.Skip()
 	}
 }
 
@@ -474,7 +474,7 @@ func (i jumpRegister0) String() string {
 }
 
 func (i jumpRegister0) Execute(c *Chip8) {
-	c.programCounter = i.n + uint16(c.registers[0])
+	c.fetcher.SetCounter(i.n + uint16(c.registers[0]))
 }
 
 // Random CXNN: Set VX to a random number with a mask of NN
@@ -569,7 +569,7 @@ func (i skipPressed) String() string {
 func (i skipPressed) Execute(c *Chip8) {
 	v := c.registers[i.x]
 	if c.input.keys[v] {
-		c.incrementProgramCounter()
+		c.fetcher.Skip()
 	}
 }
 
@@ -592,7 +592,7 @@ func (i skipNotPressed) String() string {
 func (i skipNotPressed) Execute(c *Chip8) {
 	v := c.registers[i.x]
 	if !c.input.keys[v] {
-		c.incrementProgramCounter()
+		c.fetcher.Skip()
 	}
 }
 

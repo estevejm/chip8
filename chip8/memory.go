@@ -5,10 +5,7 @@ import (
 	"strings"
 )
 
-const (
-	memoryLocations           = 0x1000
-	programStartMemoryAddress = 0x200
-)
+const memoryLocations = 0x1000
 
 type Memory [memoryLocations]uint8
 
