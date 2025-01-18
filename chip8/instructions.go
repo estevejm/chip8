@@ -37,11 +37,7 @@ func (i clearScreen) String() string {
 }
 
 func (i clearScreen) Execute(c *Chip8) {
-	for y := range c.screen {
-		for x := range c.screen[y] {
-			c.screen[y][x] = false
-		}
-	}
+	c.screen.Clear()
 }
 
 // Return 00EE: Return from a subroutine
@@ -522,9 +518,11 @@ func (i drawSprite) String() string {
 }
 
 func (i drawSprite) Execute(c *Chip8) {
+	width, height := c.screen.Layout()
+
 	// always start drawing in boundary
-	vx := int(c.registers[i.x]) % screenWidth
-	vy := int(c.registers[i.y]) % screenHeight
+	vx := int(c.registers[i.x]) % width
+	vy := int(c.registers[i.y]) % height
 
 	sprite := c.memory[c.index : c.index+uint16(i.n)]
 	vf := uint8(0)
@@ -534,7 +532,7 @@ func (i drawSprite) Execute(c *Chip8) {
 			pixelY := vy + i
 
 			// check clipping
-			if pixelX >= screenWidth || pixelY >= screenHeight {
+			if pixelX >= width || pixelY >= height {
 				continue
 			}
 

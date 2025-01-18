@@ -3,9 +3,9 @@ package chip8
 import (
 	"bytes"
 	"fmt"
-	"image/color"
 	"io"
 	"log/slog"
+	"math"
 	"os"
 	"strings"
 
@@ -19,15 +19,7 @@ const (
 	registerCount    = 16
 	flagRegister     = 0xF
 	stackLevels      = 16
-	screenWidth      = 64
-	screenHeight     = 32
-	bytePixels       = 8
 	timerRateHz      = 60
-)
-
-var (
-	pixelColorOn  = color.White
-	pixelColorOff = color.Black
 )
 
 func hexdump8(b uint8) string {
@@ -86,8 +78,6 @@ func (s Stack) String() string {
 
 	return strings.TrimSpace(sb.String())
 }
-
-type Screen [screenHeight][screenWidth]bool
 
 type Chip8 struct {
 	log            *slog.Logger
@@ -182,12 +172,7 @@ func (c *Chip8) Update() error {
 		slog.Any("S", c.stack),
 		slog.Any("DT", c.delayTimer),
 		slog.Any("ST", c.soundTimer),
-	)
-
-	c.log.Info(
-		"bench:",
-		slog.Int("TPS", int(ebiten.ActualTPS())),
-		slog.Int("FPS", int(ebiten.ActualFPS())),
+		slog.Int("Hz", int(math.Round(ebiten.ActualTPS()))),
 	)
 
 	return nil
@@ -216,22 +201,10 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 	return decode(opcode)
 }
 
-func (c *Chip8) Draw(screen *ebiten.Image) {
-	// TODO: write pixels only if there are changes
-	pixelColor := func(pixelOn bool) color.Color {
-		if pixelOn {
-			return pixelColorOn
-		}
-		return pixelColorOff
-	}
-
-	for i := range c.screen {
-		for j := range c.screen[i] {
-			screen.Set(j, i, pixelColor(c.screen[i][j]))
-		}
-	}
+func (c *Chip8) Draw(image *ebiten.Image) {
+	c.screen.Draw(image)
 }
 
 func (c *Chip8) Layout(outsideWidth, outsideHeight int) (w, h int) {
-	return screenWidth, screenHeight
+	return c.screen.Layout()
 }
