@@ -454,7 +454,7 @@ type loadIndex struct {
 }
 
 func (i loadIndex) String() string {
-	return fmt.Sprintf("LOADI 0x%04x", i.n)
+	return fmt.Sprintf("LOAD I,0x%04x", i.n)
 }
 
 func (i loadIndex) Execute(c *Chip8) {
@@ -665,11 +665,31 @@ type addIndex struct {
 }
 
 func (i addIndex) String() string {
-	return fmt.Sprintf("ADDI V%x", i.x)
+	return fmt.Sprintf("ADD I,V%x", i.x)
 }
 
 func (i addIndex) Execute(c *Chip8) {
 	c.index += uint16(c.registers[i.x])
+}
+
+// LoadDigitIndex FX29: Set I to the memory address of the sprite data
+// corresponding to the hexadecimal digit stored in register VX
+func LoadDigitIndex(opcode uint16) Instruction {
+	return &loadDigitIndex{
+		x: uint8(opcode>>8) & 0xF,
+	}
+}
+
+type loadDigitIndex struct {
+	x uint8
+}
+
+func (i loadDigitIndex) String() string {
+	return fmt.Sprintf("LOAD I,V%x", i.x)
+}
+
+func (i loadDigitIndex) Execute(c *Chip8) {
+	c.index = fontStartMemoryAddress + uint16(c.registers[i.x])
 }
 
 // BCD FX33: Store the binary-coded decimal equivalent of the value stored in register VX

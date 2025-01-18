@@ -277,6 +277,8 @@ func (c *Chip8) decode(opcode uint16) (Instruction, bool) {
 			return LoadSoundTimerRegister(opcode), true
 		case 0x1E:
 			return AddIndex(opcode), true
+		case 0x29:
+			return LoadDigitIndex(opcode), true
 		case 0x33:
 			return BCD(opcode), true
 		case 0x55:
